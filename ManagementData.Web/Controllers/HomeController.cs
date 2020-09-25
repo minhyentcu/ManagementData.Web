@@ -6,7 +6,7 @@ using System.Web.Mvc;
 
 namespace ManagementData.Web.Controllers
 {
-    public class HomeController : Controller
+    public class HomeController : BaseController
     {
         public ActionResult Index()
         {
@@ -23,7 +23,6 @@ namespace ManagementData.Web.Controllers
         public ActionResult Contact()
         {
             ViewBag.Message = "Your contact page.";
-
             return View();
         }
     }
