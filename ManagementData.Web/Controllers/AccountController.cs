@@ -10,10 +10,11 @@ using Microsoft.AspNet.Identity.Owin;
 using Microsoft.Owin.Security;
 using ManagementData.Web.Models;
 using Management.Entity;
+using System.IO;
 
 namespace ManagementData.Web.Controllers
 {
-    [Authorize]
+
     public class AccountController : Controller
     {
         private ApplicationSignInManager _signInManager;
@@ -148,15 +149,29 @@ namespace ManagementData.Web.Controllers
         [HttpPost]
         [AllowAnonymous]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> Register(RegisterViewModel model)
+        public async Task<ActionResult> Register(RegisterViewModel model, HttpPostedFileBase file)
         {
             if (ModelState.IsValid)
             {
+
+                var url = string.Empty;
+                var fileName = string.Empty;
+                string _path = string.Empty;
+                if (file?.ContentLength > 0)
+                {
+                    url = "~/Upload/avatar";
+                    fileName = DateTime.Now.Ticks + ".png";
+                    _path = Path.Combine(Server.MapPath(url), fileName);
+                    file.SaveAs(_path);
+                }
                 var user = new ApplicationUser
                 {
                     UserName = model.Email,
                     Email = model.Email,
-                    ApiToken = Guid.NewGuid().ToString()          
+                    ApiToken = Guid.NewGuid().ToString(),
+                    Avatar = fileName.Length > 0 ? url + "/" + fileName : string.Empty,
+                    FullName = model.FullName,
+                    CreateDate = DateTime.Now,
                 };
                 var result = await UserManager.CreateAsync(user, model.Password);
                 if (result.Succeeded)

@@ -195,6 +195,9 @@
     <Compile Include="App_Start\Startup.Auth.cs" />
     <Compile Include="App_Start\UnityConfig.cs" />
     <Compile Include="App_Start\WebApiConfig.cs" />
+    <Compile Include="Controllers\AdminController.cs" />
+    <Compile Include="Controllers\Api\DataInsertController.cs" />
+    <Compile Include="Controllers\DataController.cs" />
     <Compile Include="Controllers\WidgetController.cs" />
     <Compile Include="Controllers\UIElementController.cs" />
     <Compile Include="Controllers\TableController.cs" />
@@ -208,11 +211,13 @@
     <Compile Include="Controllers\BaseController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Controllers\ManageController.cs" />
+    <Compile Include="FilterAttribute\FilterAttributeData.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
     <Compile Include="Helpers\HMTLHelperExtensions.cs" />
     <Compile Include="Models\AccountViewModels.cs" />
+    <Compile Include="Models\HttpResultModel.cs" />
     <Compile Include="Models\ManageViewModels.cs" />
     <Compile Include="MVC\Pages.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -7226,9 +7231,12 @@
     <Content Include="Views\UIElement\Slider.cshtml" />
     <Content Include="Views\UIElement\Timeline.cshtml" />
     <Content Include="Views\Widget\Index.cshtml" />
+    <Content Include="Views\Admin\Index.cshtml" />
+    <Content Include="Views\Data\Index.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
+    <Folder Include="Upload\avatar\" />
     <Folder Include="Views\Base\" />
   </ItemGroup>
   <ItemGroup>
@@ -7248,6 +7256,10 @@
     <ProjectReference Include="..\Management.Entity\ManagementData.Entity.csproj">
       <Project>{8113AF72-E5C7-4672-9941-22ECD321CB46}</Project>
       <Name>ManagementData.Entity</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\ManagementData.Service\ManagementData.Service.csproj">
+      <Project>{E506BF25-C31F-42AB-9F2F-093604BEA7D1}</Project>
+      <Name>ManagementData.Service</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

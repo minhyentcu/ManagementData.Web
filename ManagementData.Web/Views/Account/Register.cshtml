@@ -38,22 +38,30 @@
         </div>
         <div class="register-box-body">
             <p class="login-box-msg">Register a new membership</p>
-            <form method="post">
+            <form method="post"  action="/Account/Register" enctype="multipart/form-data">
+                @Html.AntiForgeryToken()
+                @Html.ValidationSummary("", new { @class = "text-danger" })
                 <div class="form-group has-feedback">
-                    <input type="text" class="form-control" placeholder="Full name">
+                    @Html.EditorFor(m => m.FullName, new { htmlAttributes = new { @class = "form-control", @type = "text", @placeholder = "Full Name", @autofocus = "autofocus" } })
                     <span class="glyphicon glyphicon-user form-control-feedback"></span>
                 </div>
                 <div class="form-group has-feedback">
-                    <input type="email" class="form-control" placeholder="Email">
+                    @Html.EditorFor(m => m.Email, new { htmlAttributes = new { @class = "form-control", @type = "email", @placeholder = "Email" } })
                     <span class="glyphicon glyphicon-envelope form-control-feedback"></span>
                 </div>
                 <div class="form-group has-feedback">
-                    <input type="password" class="form-control" placeholder="Password">
+                    <input type="password" class="form-control" name="password" placeholder="Password">
                     <span class="glyphicon glyphicon-lock form-control-feedback"></span>
                 </div>
                 <div class="form-group has-feedback">
-                    <input type="password" class="form-control" placeholder="Retype password">
+                    <input type="password" class="form-control" placeholder="Retype password" name="confirmpassword">
                     <span class="glyphicon glyphicon-log-in form-control-feedback"></span>
+                </div>
+                <div class="form-group">
+                    <div class="form-group col-6">
+                        <label for="Avatar">Avatar</label>
+                        <input id="avatar" type="file" class="form-control" name="file">
+                    </div>
                 </div>
                 <div class="row">
                     <div class="col-xs-8">

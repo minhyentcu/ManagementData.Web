@@ -126,9 +126,12 @@
   <ItemGroup>
     <Compile Include="Implement\DataInsertRepository.cs" />
     <Compile Include="Implement\GenericRepository.cs" />
+    <Compile Include="Implement\UserRepository.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Repository\IDataInserRepository.cs" />
     <Compile Include="Repository\IRepository.cs" />
+    <Compile Include="Repository\IUserRepository.cs" />
+    <Compile Include="ViewModel\UserViewModel.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />

@@ -1,4 +1,6 @@
 using Management.Entity;
+using ManagementData.Service.Implement;
+using ManagementData.Service.Repository;
 using ManagementData.Web.Controllers;
 using Microsoft.AspNet.Identity;
 using Microsoft.AspNet.Identity.EntityFramework;
@@ -28,6 +30,9 @@ namespace ManagementData.Web
             container.RegisterType<UserManager<ApplicationUser>>(new HierarchicalLifetimeManager());
             container.RegisterType<IUserStore<ApplicationUser>, UserStore<ApplicationUser>>(new HierarchicalLifetimeManager());
             container.RegisterType<AccountController>(new InjectionConstructor());
+            container.RegisterType<IUserRepository,UserRepository>();
+
+            container.RegisterType<IDataInserRepository, DataInsertRepository>();
         }
     }
 }

@@ -6,10 +6,12 @@ using System.Threading.Tasks;
 
 namespace ManagementData.Service.Repository
 {
-    public interface IRepository<T> where T : class
+    public interface IRepository<T, TDto>
+        where T : class
+        where TDto : class
     {
         IEnumerable<T> GetAll();
-        T GetById(long id);
+        Task<T> GetById(long id);
         void Insert(T obj);
         void Update(T obj);
         void Delete(long obj);

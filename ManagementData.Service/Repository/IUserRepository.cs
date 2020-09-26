@@ -1,4 +1,5 @@
 ﻿using Management.Entity;
+using ManagementData.Service.ViewModel;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,8 +8,7 @@ using System.Threading.Tasks;
 
 namespace ManagementData.Service.Repository
 {
-    public interface IDataInserRepository
+    public interface IUserRepository : IRepository<ApplicationUser, UserViewModel>
     {
-        Task<IEnumerable<DataInsert>> GetdataFilter(int top, string userId);
     }
 }

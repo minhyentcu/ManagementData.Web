@@ -9,7 +9,9 @@ using System.Threading.Tasks;
 
 namespace ManagementData.Service.Implement
 {
-    public class GenericRepository<T> : IDisposable, IRepository<T> where T : class
+    public class GenericRepository<T, TDto> : IDisposable, IRepository<T, TDto>
+        where T : class
+        where TDto : class
     {
         public ManagementDataContext _context = null;
         public DbSet<T> table = null;
@@ -29,11 +31,11 @@ namespace ManagementData.Service.Implement
             return table.ToList();
         }
 
-        public T GetById(long id)
+        public  Task<T> GetById(long id)
         {
-            return table.Find(id);
+            return  table.FindAsync(id);
         }
-        public void Insert(T obj)
+        public  void Insert(T obj)
         {
             table.Add(obj);
         }
@@ -47,14 +49,14 @@ namespace ManagementData.Service.Implement
             var data = table.Find(id);
             table.Remove(data);
         }
-        public void Save()
+        public  void Save()
         {
             _context.SaveChanges();
         }
 
-        public Task<int> SaveAsync()
+        public  Task<int> SaveAsync()
         {
-            return _context.SaveChangesAsync();
+            return  _context.SaveChangesAsync();
         }
 
         public void Dispose()
