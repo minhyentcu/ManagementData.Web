@@ -7236,6 +7236,7 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
+    <Folder Include="Export\Excel\" />
     <Folder Include="Upload\avatar\" />
     <Folder Include="Views\Base\" />
   </ItemGroup>
