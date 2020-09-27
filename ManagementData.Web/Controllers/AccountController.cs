@@ -11,6 +11,7 @@ using Microsoft.Owin.Security;
 using ManagementData.Web.Models;
 using Management.Entity;
 using System.IO;
+using System.Text;
 
 namespace ManagementData.Web.Controllers
 {
@@ -193,6 +194,37 @@ namespace ManagementData.Web.Controllers
             return View(model);
         }
 
+
+        [HttpPost]
+        [AllowAnonymous]
+        public async Task<JsonResult> RegisterUser(RegisterViewModel model)
+        {
+            var result = new IdentityResult();
+            if (ModelState.IsValid)
+            {
+                var user = new ApplicationUser
+                {
+                    UserName = model.Email,
+                    Email = model.Email,
+                    ApiToken = Guid.NewGuid().ToString(),
+                    FullName = model.FullName,
+                    CreateDate = DateTime.Now,
+                };
+                result = await UserManager.CreateAsync(user, model.Password);
+                //if (result.Succeeded)
+                //{
+                //    return Json(new { data = result }, JsonRequestBehavior.AllowGet);
+                //}
+                AddErrors(result);
+                return Json(new { data = result.Errors.ToArray() }, JsonRequestBehavior.AllowGet);
+            }
+            var query = from state in ModelState.Values
+                        from error in state.Errors
+                        select error.ErrorMessage;
+            var errors = query.ToArray();
+            return Json(new { data = errors }, JsonRequestBehavior.AllowGet);
+        }
+
         //
         // GET: /Account/ConfirmEmail
         [AllowAnonymous]
@@ -221,27 +253,66 @@ namespace ManagementData.Web.Controllers
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> ForgotPassword(ForgotPasswordViewModel model)
         {
-            if (ModelState.IsValid)
+            try
             {
-                var user = await UserManager.FindByNameAsync(model.Email);
-                if (user == null || !(await UserManager.IsEmailConfirmedAsync(user.Id)))
+                if (ModelState.IsValid)
                 {
-                    // Don't reveal that the user does not exist or is not confirmed
-                    return View("ForgotPasswordConfirmation");
+                    var user = await UserManager.FindByNameAsync(model.Email);
+                    if (user == null)
+                    {
+                        // Don't reveal that the user does not exist or is not confirmed
+                        return RedirectToAction(nameof(Login));
+                    }
+                    var newpassword = CreatePassword(6);
+                    await UserManager.RemovePasswordAsync(user.Id);
+                    await UserManager.AddPasswordAsync(user.Id, newpassword);
+                    await UserManager.SendEmailAsync(user.Id, newpassword, newpassword);
+                    return RedirectToAction(nameof(Login));
                 }
-
-                // For more information on how to enable account confirmation and password reset please visit https://go.microsoft.com/fwlink/?LinkID=320771
-                // Send an email with this link
-                // string code = await UserManager.GeneratePasswordResetTokenAsync(user.Id);
-                // var callbackUrl = Url.Action("ResetPassword", "Account", new { userId = user.Id, code = code }, protocol: Request.Url.Scheme);		
-                // await UserManager.SendEmailAsync(user.Id, "Reset Password", "Please reset your password by clicking <a href=\"" + callbackUrl + "\">here</a>");
-                // return RedirectToAction("ForgotPasswordConfirmation", "Account");
+                return View(model);
             }
-
-            // If we got this far, something failed, redisplay form
-            return View(model);
+            catch (Exception ex)
+            {
+                WriteToFile(ex.ToString());
+                return View("ForgotPasswordConfirmation");
+            }
+        }
+        public string CreatePassword(int length)
+        {
+            const string valid = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890";
+            StringBuilder res = new StringBuilder();
+            Random rnd = new Random();
+            while (0 < length--)
+            {
+                res.Append(valid[rnd.Next(valid.Length)]);
+            }
+            return res.ToString();
         }
 
+        public void WriteToFile(string Message)
+        {
+            string path = AppDomain.CurrentDomain.BaseDirectory + "\\Logs";
+            if (!Directory.Exists(path))
+            {
+                Directory.CreateDirectory(path);
+            }
+            string filepath = AppDomain.CurrentDomain.BaseDirectory + "\\Logs\\ServiceLog_" + DateTime.Now.Date.ToShortDateString().Replace('/', '_') + ".txt";
+            if (!System.IO.File.Exists(filepath))
+            {
+                // Create a file to write to.   
+                using (StreamWriter sw = System.IO.File.CreateText(filepath))
+                {
+                    sw.WriteLine(Message);
+                }
+            }
+            else
+            {
+                using (StreamWriter sw = System.IO.File.AppendText(filepath))
+                {
+                    sw.WriteLine(Message);
+                }
+            }
+        }
         //
         // GET: /Account/ForgotPasswordConfirmation
         [AllowAnonymous]
@@ -361,10 +432,20 @@ namespace ManagementData.Web.Controllers
                     return RedirectToAction("SendCode", new { ReturnUrl = returnUrl, RememberMe = false });
                 case SignInStatus.Failure:
                 default:
-                    // If the user does not have an account, then prompt the user to create an account
+                    var user = new ApplicationUser { UserName = loginInfo.Email, Email = loginInfo.Email, FullName = loginInfo.DefaultUserName,ApiToken =Guid.NewGuid().ToString() ,CreateDate=DateTime.Now };
+                    var resultLogin = await UserManager.CreateAsync(user);
+                    if (resultLogin.Succeeded)
+                    {
+                        resultLogin = await UserManager.AddLoginAsync(user.Id, loginInfo.Login);
+                        if (resultLogin.Succeeded)
+                        {
+                            await SignInManager.SignInAsync(user, isPersistent: false, rememberBrowser: false);
+                            return RedirectToLocal(returnUrl);
+                        }
+                    }
+                    AddErrors(resultLogin);
                     ViewBag.ReturnUrl = returnUrl;
-                    ViewBag.LoginProvider = loginInfo.Login.LoginProvider;
-                    return View("ExternalLoginConfirmation", new ExternalLoginConfirmationViewModel { Email = loginInfo.Email });
+                    return View("Login");
             }
         }
 

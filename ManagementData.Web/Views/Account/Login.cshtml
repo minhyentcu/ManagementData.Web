@@ -66,40 +66,40 @@
                     </div>
                     <!-- /.col -->
                 </div>
-                </form>
-                @*</form>
-                    <div class="social-auth-links text-center">
-                        <p>- OR -</p>
-                        <a href="#" class="btn btn-block btn-social btn-facebook btn-flat">
-                            <i class="fa fa-facebook"></i> Sign in using
-                            Facebook
-                        </a>
-                        <a href="#" class="btn btn-block btn-social btn-google btn-flat">
-                            <i class="fa fa-google-plus"></i> Sign in using
-                            Google+
-                        </a>
-                    </div>*@
-                @using (Html.BeginForm("ExternalLogin", "Account", new { ReturnUrl = string.Empty }))
-                {
-                    @Html.AntiForgeryToken()
-                    <div class="text-center mt-4 mb-3">
-                        <div class="text-job text-muted ">Login With Social</div>
+            </form>
+            @*</form>
+                <div class="social-auth-links text-center">
+                    <p>- OR -</p>
+                    <a href="#" class="btn btn-block btn-social btn-facebook btn-flat">
+                        <i class="fa fa-facebook"></i> Sign in using
+                        Facebook
+                    </a>
+                    <a href="#" class="btn btn-block btn-social btn-google btn-flat">
+                        <i class="fa fa-google-plus"></i> Sign in using
+                        Google+
+                    </a>
+                </div>*@
+            @using (Html.BeginForm("ExternalLogin", "Account", new { ReturnUrl = string.Empty }))
+            {
+                @Html.AntiForgeryToken()
+                <div class="text-center mt-4 mb-3">
+                    <div class="text-job text-muted ">Login With Social</div>
+                </div>
+                <div class="row sm-gutters">
+                    <div class="col-6">
+                        <button id="Facebook" name="provider" value="Facebook" class="btn btn-block btn-social btn-facebook">
+                            <i class="fa fa-facebook"></i> Sign in using Facebook
+                        </button>
                     </div>
-                                    <div class="row sm-gutters">
-                                        <div class="col-6">
-                                            <button id="Facebook" name="provider" value="Facebook" class="btn btn-block btn-social btn-facebook">
-                                                <span class="fab fa-facebook"></span> Facebook
-                                            </button>
-                                        </div>
-                                        <div class="col-6">
-                                            <button id="Google" name="provider" value="Google" class="btn btn-block btn-social btn-google">
-                                                <span class="fab fa-google"></span> Google
-                                            </button>
-                                        </div>
-                                    </div>}
-                <!-- /.social-auth-links -->
-                <a href="#">I forgot my password</a><br>
-                <a href="/Account/Register" class="text-center">Register a new membership</a>
+                    <div class="col-6">
+                        <button id="Google" name="provider" value="Google" class="btn btn-block btn-social btn-google">
+                            <i class="fa fa-google-plus"></i> Google
+                        </button>
+                    </div>
+                </div>}
+            <!-- /.social-auth-links -->
+            <a href="/Account/ForgotPassword">I forgot my password</a><br>
+            <a href="/Account/Register" class="text-center">Register a new membership</a>
         </div>
         <!-- /.login-box-body -->
     </div>

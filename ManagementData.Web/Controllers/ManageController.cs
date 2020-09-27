@@ -7,6 +7,7 @@ using Microsoft.AspNet.Identity;
 using Microsoft.AspNet.Identity.Owin;
 using Microsoft.Owin.Security;
 using ManagementData.Web.Models;
+using System.IO;
 
 namespace ManagementData.Web.Controllers
 {
@@ -32,9 +33,9 @@ namespace ManagementData.Web.Controllers
             {
                 return _signInManager ?? HttpContext.GetOwinContext().Get<ApplicationSignInManager>();
             }
-            private set 
-            { 
-                _signInManager = value; 
+            private set
+            {
+                _signInManager = value;
             }
         }
 
@@ -64,13 +65,18 @@ namespace ManagementData.Web.Controllers
                 : "";
 
             var userId = User.Identity.GetUserId();
+            var user = await UserManager.FindByIdAsync(userId);
             var model = new IndexViewModel
             {
                 HasPassword = HasPassword(),
                 PhoneNumber = await UserManager.GetPhoneNumberAsync(userId),
                 TwoFactor = await UserManager.GetTwoFactorEnabledAsync(userId),
                 Logins = await UserManager.GetLoginsAsync(userId),
-                BrowserRemembered = await AuthenticationManager.TwoFactorBrowserRememberedAsync(userId)
+                BrowserRemembered = await AuthenticationManager.TwoFactorBrowserRememberedAsync(userId),
+                FullName = user.FullName,
+                ApiToken = user.ApiToken,
+                Email = user.Email,
+                UserId = userId
             };
             return View(model);
         }
@@ -244,6 +250,67 @@ namespace ManagementData.Web.Controllers
             return View(model);
         }
 
+        //Change token
+        [HttpPost]
+        public async Task<JsonResult> ChangeToken(string userId)
+        {
+            var user = await UserManager.FindByIdAsync(userId);
+            if (user != null)
+            {
+                var tokenNew = Guid.NewGuid().ToString();
+                user.ApiToken = tokenNew;
+                var result = await UserManager.UpdateAsync(user);
+                if (result.Succeeded)
+                {
+                    return Json(tokenNew, JsonRequestBehavior.AllowGet);
+                }
+            }
+            return Json(string.Empty, JsonRequestBehavior.AllowGet);
+        }
+
+        //Change profile
+        [HttpPost]
+        public async Task<ActionResult> Profile(IndexViewModel model, HttpPostedFileBase file)
+        {
+            try
+            {
+                if (ModelState.IsValid)
+                {
+                    var url = string.Empty;
+                    var fileName = string.Empty;
+                    string _path = string.Empty;
+                    if (file?.ContentLength > 0)
+                    {
+                        url = "~/Upload/avatar";
+                        fileName = DateTime.Now.Ticks + ".png";
+                        _path = Path.Combine(Server.MapPath(url), fileName);
+                        file.SaveAs(_path);
+                    }
+                    var user = await UserManager.FindByIdAsync(User.Identity.GetUserId());
+                    user.FullName = model.FullName;
+                    if (fileName.Length > 0)
+                    {
+                        user.Avatar = url + "/" + fileName;
+                    }
+                    var result = await UserManager.UpdateAsync(user);
+                    if (result.Succeeded)
+                    {
+                        return RedirectToAction(nameof(Index));
+                    }
+                    AddErrors(result);
+                }
+                return View(model);
+            }
+            catch (Exception)
+            {
+
+                return View(model);
+            }
+
+        }
+
+
+
         //
         // GET: /Manage/SetPassword
         public ActionResult SetPassword()
@@ -254,26 +321,19 @@ namespace ManagementData.Web.Controllers
         //
         // POST: /Manage/SetPassword
         [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<ActionResult> SetPassword(SetPasswordViewModel model)
+        public async Task<JsonResult> SetPassword(ChangePasswordViewModel model)
         {
             if (ModelState.IsValid)
             {
-                var result = await UserManager.AddPasswordAsync(User.Identity.GetUserId(), model.NewPassword);
-                if (result.Succeeded)
-                {
-                    var user = await UserManager.FindByIdAsync(User.Identity.GetUserId());
-                    if (user != null)
-                    {
-                        await SignInManager.SignInAsync(user, isPersistent: false, rememberBrowser: false);
-                    }
-                    return RedirectToAction("Index", new { Message = ManageMessageId.SetPasswordSuccess });
-                }
-                AddErrors(result);
+                var result = await UserManager.ChangePasswordAsync(User.Identity.GetUserId(), model.OldPassword, model.NewPassword);
+                return Json(new { data = result.Errors.ToArray() }, JsonRequestBehavior.AllowGet);
             }
-
             // If we got this far, something failed, redisplay form
-            return View(model);
+            var query = from state in ModelState.Values
+                        from error in state.Errors
+                        select error.ErrorMessage;
+            var errors = query.ToArray();
+            return Json(new { data = errors }, JsonRequestBehavior.AllowGet);
         }
 
         //
@@ -333,7 +393,7 @@ namespace ManagementData.Web.Controllers
             base.Dispose(disposing);
         }
 
-#region Helpers
+        #region Helpers
         // Used for XSRF protection when adding external logins
         private const string XsrfKey = "XsrfId";
 
@@ -384,6 +444,6 @@ namespace ManagementData.Web.Controllers
             Error
         }
 
-#endregion
+        #endregion
     }
 }

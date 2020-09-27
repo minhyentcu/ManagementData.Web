@@ -10,7 +10,7 @@ using System.Web.Mvc;
 namespace ManagementData.Web.Controllers
 {
     [Authorize]
-    public class AdminController : Controller
+    public class AdminController : BaseController
     {
         private readonly IUserRepository _userRepository;
         private readonly IDataInserRepository _dataInserRepository;

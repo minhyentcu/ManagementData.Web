@@ -1,87 +1,240 @@
 ﻿@model ManagementData.Web.Models.IndexViewModel
+@using Microsoft.AspNet.Identity;
+@*@{
+        ViewBag.Title = "Manage";
+    }
+
+    <h2>@ViewBag.Title.</h2>
+
+    <p class="text-success">@ViewBag.StatusMessage</p>
+    <div>
+        <h4>Change your account settings</h4>
+        <hr />
+        <dl class="dl-horizontal">
+            <dt>Password:</dt>
+            <dd>
+                [
+                @if (Model.HasPassword)
+                {
+                    @Html.ActionLink("Change your password", "ChangePassword")
+                }
+                else
+                {
+                    @Html.ActionLink("Create", "SetPassword")
+                }
+                ]
+            </dd>
+            <dt>External Logins:</dt>
+            <dd>
+                @Model.Logins.Count [
+                @Html.ActionLink("Manage", "ManageLogins") ]
+            </dd>
+
+        </dl>
+    </div>*@
+
+
 @{
-    ViewBag.Title = "Manage";
+    ViewData["Title"] = "Profile";
+    Layout = "~/Views/Shared/_Adminlte.cshtml";
 }
 
-<h2>@ViewBag.Title.</h2>
 
-<p class="text-success">@ViewBag.StatusMessage</p>
-<div>
-    <h4>Change your account settings</h4>
-    <hr />
-    <dl class="dl-horizontal">
-        <dt>Password:</dt>
-        <dd>
-            [
-            @if (Model.HasPassword)
-            {
-                @Html.ActionLink("Change your password", "ChangePassword")
-            }
-            else
-            {
-                @Html.ActionLink("Create", "SetPassword")
-            }
-            ]
-        </dd>
-        <dt>External Logins:</dt>
-        <dd>
-            @Model.Logins.Count [
-            @Html.ActionLink("Manage", "ManageLogins") ]
-        </dd>
-        @*
-            Phone Numbers can used as a second factor of verification in a two-factor authentication system.
-             
-             See <a href="https://go.microsoft.com/fwlink/?LinkId=403804">this article</a>
-                for details on setting up this ASP.NET application to support two-factor authentication using SMS.
-             
-             Uncomment the following block after you have set up two-factor authentication
-        *@
-        @*  
-            <dt>Phone Number:</dt>
-            <dd>
-                @(Model.PhoneNumber ?? "None")
-                @if (Model.PhoneNumber != null)
-                {
-                    <br />
-                    <text>[&nbsp;&nbsp;@Html.ActionLink("Change", "AddPhoneNumber")&nbsp;&nbsp;]</text>
-                    using (Html.BeginForm("RemovePhoneNumber", "Manage", FormMethod.Post, new { @class = "form-horizontal", role = "form" }))
-                    {
-                        @Html.AntiForgeryToken()
-                        <text>[<input type="submit" value="Remove" class="btn-link" />]</text>
-                    }
-                }
-                else
-                {
-                    <text>[&nbsp;&nbsp;@Html.ActionLink("Add", "AddPhoneNumber")
-                }
-            </dd>
-        *@
-        <dt>Two-Factor Authentication:</dt>
-        <dd>
-            <p>
-                There are no two-factor authentication providers configured. See <a href="https://go.microsoft.com/fwlink/?LinkId=403804">this article</a>
-                for details on setting up this ASP.NET application to support two-factor authentication.
-            </p>
-            @*@if (Model.TwoFactor)
-                {
-                    using (Html.BeginForm("DisableTwoFactorAuthentication", "Manage", FormMethod.Post, new { @class = "form-horizontal", role = "form" }))
-                    {
-                        @Html.AntiForgeryToken()
-                        <text>Enabled
-                        <input type="submit" value="Disable" class="btn btn-link" />
-                        </text>
-                    }
-                }
-                else
-                {
-                    using (Html.BeginForm("EnableTwoFactorAuthentication", "Manage", FormMethod.Post, new { @class = "form-horizontal", role = "form" }))
-                    {
-                        @Html.AntiForgeryToken()
-                        <text>Disabled
-                        <input type="submit" value="Enable" class="btn btn-link" />
-                        </text>
-                    }
-                }*@
-        </dd>
-    </dl>
+
+<!-- Content Wrapper. Contains page content -->
+<div class="content-wrapper">
+    <!-- Content Header (Page header) -->
+    <section class="content-header">
+        <h1>
+            User Profile
+        </h1>
+        <ol class="breadcrumb">
+            <li><a href="#"><i class="fa fa-dashboard"></i> Home</a></li>
+            <li><a href="#">Examples</a></li>
+            <li class="active">User profile</li>
+        </ol>
+    </section>
+    <!-- Main content -->
+    <section class="content">
+        <div class="row">
+            <!-- /.col -->
+            <div class="col-md-9">
+                <div class="nav-tabs-custom">
+                    <ul class="nav nav-tabs">
+                        <li class="active"><a href="#settings" data-toggle="tab">Profile</a></li>
+                        <li><a href="#activity" data-toggle="tab">Change Password</a></li>
+
+                    </ul>
+                    <div class="tab-content">
+                        <!-- /.tab-pane -->
+                        <div class="tab-pane active" id="settings">
+                            <form class="form-horizontal" method="post" action="/Manage/Profile" enctype="multipart/form-data">
+                                <div class="form-group">
+                                    <label for="inputName" class="col-sm-2 control-label">Full Name</label>
+                                    <div class="col-sm-10">
+                                        <input type="text" class="form-control" value="@Model.FullName" required id="inputName" name="FullName" placeholder="Name">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="inputEmail" class="col-sm-2 control-label">Email</label>
+                                    <div class="col-sm-10">
+                                        <input type="email" class="form-control" value="@Model.Email" name="Email" disabled id="inputEmail" placeholder="Email">
+                                    </div>
+                                </div>
+
+
+                                <div class="form-group">
+                                    <label for="inputSkills" class="col-sm-2 control-label">Token</label>
+                                    <div class="col-sm-9">
+                                        <label type="text" class="form-control" value="@Model.ApiToken" id="inputToken" name="ApiKey">@Model.ApiToken</label>
+                                    </div>
+                                    <div class="col-sm-1">
+                                        <button type="button" style="float: right;height:34px;" data-user-id="@Model.UserId" class="btn btn-primary btn-change-token btn-sm"><i class="fa fa-refresh" aria-hidden="true">&nbsp;Change</i></button>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="inputSkills" class="col-sm-2 control-label">Avatar</label>
+                                    <div class="col-sm-10">
+                                        <input type="file" class="form-control" name="file" value="">
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <div class="col-sm-offset-2 col-sm-10">
+                                        <button type="submit" class="btn btn-danger">Submit</button>
+                                    </div>
+                                </div>
+
+
+                            </form>
+                        </div>
+                        <!-- /.tab-pane -->
+                        <div class=" tab-pane" id="activity">
+                            <form class="form-horizontal">
+                                @Html.AntiForgeryToken()
+                                @Html.ValidationSummary("", new { @class = "text-danger" })
+                                <div class="form-group">
+                                    <label for="inputSkills" class="col-sm-2 control-label">Password</label>
+                                    <div class="col-sm-10">
+                                        <input type="password" class="form-control" id="oldPassword" name="NewPassword" required value="">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="inputSkills" class="col-sm-2 control-label">New Password</label>
+                                    <div class="col-sm-10">
+                                        <input type="password" class="form-control" id="newPassword" name="NewPassword" required value="">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="inputSkills" class="col-sm-2 control-label">Confirm Password</label>
+                                    <div class="col-sm-10">
+                                        <input type="password" class="form-control" id="confirmPassword" name="ConfirmPassword" required value="">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="col-sm-offset-2 col-sm-10">
+                                        <button type="button" class="btn btn-danger btn-change-password">Submit</button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+
+
+                    </div>
+                    <!-- /.tab-content -->
+                </div>
+                <!-- /.nav-tabs-custom -->
+            </div>
+            <!-- /.col -->
+        </div>
+        <!-- /.row -->
+    </section>
+    <!-- /.content -->
 </div>
+<!-- /.content-wrapper -->
+
+
+
+@section Styles{
+    <!-- Bootstrap 3.3.7 -->
+    <link rel="stylesheet" href="~/Content/adminlte/components/bootstrap/dist/css/bootstrap.min.css">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="~/Content/adminlte/components/font-awesome/css/font-awesome.min.css">
+    <!-- Ionicons -->
+    <link rel="stylesheet" href="~/Content/adminlte/components/Ionicons/css/ionicons.min.css">
+    <!-- Theme style -->
+    <link rel="stylesheet" href="~/Content/adminlte/dist/css/AdminLTE.min.css">
+    <!-- AdminLTE Skins. Choose a skin from the css/skins
+         folder instead of downloading all of them to reduce the load. -->
+    <link rel="stylesheet" href="~/Content/adminlte/dist/css/skins/_all-skins.min.css">
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+    <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
+    <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+    <!-- Google Font -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,700,300italic,400italic,600italic">
+}
+
+
+@section Scripts{
+    <!-- jQuery 3 -->
+    <script src="~/Content/adminlte/components/jquery/dist/jquery.min.js"></script>
+    <!-- Bootstrap 3.3.7 -->
+    <script src="~/Content/adminlte/components/bootstrap/dist/js/bootstrap.min.js"></script>
+    <!-- FastClick -->
+    <script src="~/Content/adminlte/components/fastclick/lib/fastclick.js"></script>
+    <!-- AdminLTE App -->
+    <script src="~/Content/adminlte/dist/js/adminlte.min.js"></script>
+    <!-- AdminLTE for demo purposes -->
+    <script src="~/Content/adminlte/dist/js/demo.js"></script>
+    <script>
+        $(document).ready(function () {
+            $('.btn-change-token').click(function (e) {
+                e.preventDefault();
+                var userId = $(this).attr('data-user-id');
+                $.ajax({
+                    type: "POST",
+                    url: "/Manage/ChangeToken",
+                    data: "userId=" + userId,
+                    dataType: "json",
+                    success: function (response) {
+                        if (response.length > 0) {
+                            $('#inputToken').html(response);
+                        }
+                    }
+                });
+            });
+            $('.btn-change-password').click(function (e) {
+                e.preventDefault();
+                var model = {
+                    OldPassword: $('#oldPassword').val(),
+                    NewPassword: $('#newPassword').val(),
+                    ConfirmPassword: $('#confirmPassword').val()
+                }
+                $.ajax({
+                    type: "POST",
+                    url: "/Manage/SetPassword",
+                    data: model,
+                    dataType: "json",
+                    success: function (response) {
+                        if (response.data.length == 0) {
+                            location.reload();
+                        }
+                        else {
+                            $('.validation-summary-valid ul').html('');
+                            $.each(response.data, function (indexInArray, valueOfElement) {
+                                $('.validation-summary-valid ul').append("<li>" + valueOfElement + "</li>");
+                            });
+                        }
+                    }
+                });
+            });
+        });
+    </script>
+}
+
+
+
+

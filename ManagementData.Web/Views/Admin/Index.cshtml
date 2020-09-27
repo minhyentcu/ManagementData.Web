@@ -9,8 +9,7 @@
     <!-- Content Header (Page header) -->
     <section class="content-header">
         <h1>
-            Data Tables
-            <small>advanced tables</small>
+            All User
         </h1>
         <ol class="breadcrumb">
             <li><a href="#"><i class="fa fa-dashboard"></i> Home</a></li>
@@ -24,7 +23,12 @@
             <div class="col-xs-12">
                 <div class="box">
                     <div class="box-header">
-                        <h3 class="box-title">Hover Data Table</h3>
+                        <h3 class="box-title">All User</h3>
+                        <button class="btn btn-success btn-add-user" style="float:right;margin-right:3%" data-toggle="modal" data-target="#modal-add-user">Add User</button>
+                        <div class="box-tools pull-right">
+                            <button type="button" class="btn btn-box-tool btn-box-tool-user-minus" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                            <button type="button" class="btn btn-box-tool btn-box-tool-user-remove" data-widget="remove"><i class="fa fa-remove"></i></button>
+                        </div>
                     </div>
                     <!-- /.box-header -->
                     <div class="box-body">
@@ -66,53 +70,120 @@
             </div>
             <!-- /.col -->
         </div>
-
-        @foreach (var item in Model)
-        {
-            <div class="row tab-data-@item.Id tab-data" style="display:none">
-                <div class="col-xs-12">
-                    <div class="box">
-                        <div class="box-header">
-                            <h3 class="box-title">Data</h3>
-                        </div>
-                        <!-- /.box-header -->
-                        <div class="box-body">
-                            <table id="" class="table table-bordered table-hover">
-                                <thead>
-                                    <tr>
-                                        <th>STT</th>
-                                        <th>Data</th>
-                                        <th>Create Date</th>
-                                        <th>Action</th>
-                                    </tr>
-                                </thead>
-                                <tbody class="body-data-@item.Id">
-                                    @*@foreach (var item in Model)
-                                        {
-                                            <tr>
-                                                <td>@item.Email</td>
-                                                <td>@item.FullName</td>
-                                                <td>@item.CreateDate.ToString("dd/MM/yyyy")</td>
-                                                <td>
-                                                    <button class="btn btn-default btn-show-data" data-id="@item.Id">Data</button>
-                                                </td>
-                                            </tr>
-                                        }*@
-
-                                </tbody>
-                            </table>
-                        </div>
-                        <!-- /.box-body -->
+        <div class="modal fade" id="modal-add-user">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    @*<form method="post" action="/Account/Register">*@
+                    @Html.AntiForgeryToken()
+                    @Html.ValidationSummary("", new { @class = "text-danger" })
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                        <h4 class="modal-title">Create New User </h4>
                     </div>
+                    <div class="modal-body">
+                        <div class="form-group has-feedback">
+                            <input type="text" class="form-control" name="fullname" id="fullname_create" placeholder="Fullname" required>
+                            <span class="glyphicon glyphicon-user form-control-feedback"></span>
+                        </div>
+                        <div class="form-group has-feedback">
+                            <input type="email" class="form-control" name="email" id="email_create" placeholder="email" required>
+                            <span class="glyphicon glyphicon-envelope form-control-feedback"></span>
+                        </div>
+                        <div class="form-group has-feedback">
+                            <input type="password" class="form-control" name="password" id="password_create" placeholder="Password" required>
+                            <span class="glyphicon glyphicon-lock form-control-feedback"></span>
+                        </div>
+                        <div class="form-group has-feedback">
+                            <input type="password" class="form-control" placeholder="Retype password" id="confirmpassword_create" name="confirmpassword" required>
+                            <span class="glyphicon glyphicon-log-in form-control-feedback"></span>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default pull-left" data-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-primary btn-create-user">Save changes</button>
+                    </div>
+                    @*</form>*@
+                </div>
+                <!-- /.modal-content -->
+            </div>
+            <!-- /.modal-dialog -->
+        </div>
+
+        <div class="box">
+            <div class="box-header">
+                <h3 class="box-title">All User</h3>
+                <div style="float: right">
+                    <button type="button" class="btn btn-box-tool btn-box-tool-data-minus" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                    <button type="button" class="btn btn-box-tool btn-box-tool-data-remove" data-widget="remove"><i class="fa fa-remove"></i></button>
                 </div>
             </div>
-            <!-- /.col -->
-        }
-        <!-- /.row -->
+            <div class="box-body">
+                <table id="example3" class="table table-bordered table-hover">
+                    <thead>
+                        <tr>
+                            <th>Id</th>
+                            <th>Text</th>
+                            <th>Create Date</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                </table>
+            </div>
+        </div>
+
+        <div class="modal fade" id="modal-default">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <form method="post" action="/Data/InsertData">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                            <h4 class="modal-title">Inser Data</h4>
+                        </div>
+                        <div class="modal-body">
+                            <textarea class="form-control" rows="10" name="Text"></textarea>
+                            <input type="hidden" name="userId" id="data-user-create" value="" />
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-default pull-left" data-dismiss="modal">Close</button>
+                            <button type="submit" class="btn btn-primary">Save changes</button>
+                        </div>
+                    </form>
+                </div>
+                <!-- /.modal-content -->
+            </div>
+            <!-- /.modal-dialog -->
+        </div>
+        <div class="modal fade" id="modal-edit">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <form method="post" action="/Data/UpdateData">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                            <h4 class="modal-title">Edit Data</h4>
+                        </div>
+                        <div class="modal-body">
+                            <textarea class="form-control data-text-edit" rows="10" name="Text"></textarea>
+                            <input type="hidden" name="id" id="data-id-edit" value="" />
+                            <input type="" name="admin" value="admin" />
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-default pull-left" data-dismiss="modal">Close</button>
+                            <button type="submit" class="btn btn-primary">Save changes</button>
+                        </div>
+                    </form>
+                </div>
+                <!-- /.modal-content -->
+            </div>
+            <!-- /.modal-dialog -->
+        </div>
     </section>
     <!-- /.content -->
-
-
 </div>
 <!-- /.content-wrapper -->
 
@@ -158,35 +229,132 @@
     <script src="~/Content/adminlte/dist/js/adminlte.min.js"></script>
     <!-- AdminLTE for demo purposes -->
     <script src="~/Content/adminlte/dist/js/demo.js"></script>
+    <script src="~/Scripts/sweetalert.min.js"></script>
     <!-- page script -->
     <script>
         $(function () {
             $('#example2').DataTable({
-                //'paging'      : true,
-                //'lengthChange': false,
-                //'searching'   : false,
-                //'ordering'    : true,
-                //'info'        : true,
-                //'autoWidth'   : false
+
             })
-            $('#tableDataUser').DataTable({
-                //'paging'      : true,
-                //'lengthChange': false,
-                //'searching'   : false,
-                //'ordering'    : true,
-                //'info'        : true,
-                //'autoWidth'   : false
-            })
+            var table;
+            var data;
         })
         $(document).ready(function () {
-            $('.btn-show-data').click(function (e) {
-                var id = $(this).attr('data-id');
-                $('.tab-data').hide();
-                $('.tab-data-' + id).show();
+            //load data modal
+            $('.btn-show-data').click(function () {
+                var userId = $(this).attr('data-id');
+                $('#example3 tbody').remove();
+                $('#example3').DataTable().destroy();
+
+                $('#example3').DataTable({
+                    "ajax": {
+                        "url": "/Data/GetData",
+                        "type": "GET",
+                        "data": function (d) {
+                            d.userId = userId;
+                        },
+                        "dataType": "json",
+                        "dataSrc": function (json) {
+                          
+                            return json.dataObject;
+                        }
+                    },
+                    drawCallback: function (response) {
+                    },
+                    "columns": [
+                        { "data": "Id", "name": "Id" },
+                        { "data": "Text", "name": "Text" },
+                        { "data": "TimeCreate", "name": "TimeCreate" },
+                        {
+                            "data": "Id",
+                            "render": function (data, row, type) {
+                                return `
+                                <div class="text-center">
+                                <a  class="btn btn-info text-white btn-edit" data-id="${data}"data-toggle="modal" data-target="#modal-edit"  style="cursor:pointer">
+                                Edit <i class="fas fa-edit"></i> &nbsp;
+                                </a>
+                                <a  class="btn btn-danger text-white btn-delete" data-id="${data}" style="cursor:pointer">
+                                Delete <i class="fas fa-trash-alt"></i> &nbsp;
+                                </a>
+                                </div>
+                                `
+                            }
+                        }
+                    ],
+                    "serverSide": "true",
+                });
+                table = $('#example3').DataTable();
+                $(".btn-box-tool-user-minus").trigger("click");
+            });
+            $('.btn-create-user').click(function (e) {
                 e.preventDefault();
+                var model = {
+                    fullname: $('#fullname_create').val(),
+                    email: $('#email_create').val(),
+                    password: $('#password_create').val(),
+                    confirmpassword: $('#confirmpassword_create').val()
+                }
+                $.ajax({
+                    type: "POST",
+                    url: "/Account/RegisterUser",
+                    data: model,
+                    dataType: "json",
+                    success: function (response) {
+                        console.log(response.data);
+                        console.log(response.data.length);
+                        if (response.data.length == 0) {
+                            location.reload();
+                        }
+                        else {
+                            $('.validation-summary-valid ul').html('');
+                            $.each(response.data, function (indexInArray, valueOfElement) {
+                                $('.validation-summary-valid ul').append("<li>" + valueOfElement + "</li>");
+                            });
+                        }
+                    }
+                });
+            });
+
+            
+            $('body').on('mouseenter', '#example3 tbody tr ', function () {
+                data = table.row(this).data();
+            });
+            $('body').on('click', '.btn-edit', function (e) {
+                e.preventDefault();
+                var id = $(this).attr('data-id');
+                $('#data-id-edit').val(id);
+                $('.data-text-edit').html(data.Text);
+            });
+
+            $('body').on('click', '.btn-delete', function (e) {
+                e.preventDefault();
+                var id = $(this).attr('data-id');
+                swal({
+                    title: 'Are you sure?',
+                    text: 'Once deleted, you will not be able to recover this data!',
+                    icon: 'warning',
+                    buttons: true,
+                    dangerMode: true,
+                })
+                    .then((willDelete) => {
+                        if (willDelete) {
+
+                            $.ajax({
+                                type: "POST",
+                                url: "/Data/DeleteData",
+                                data: "id=" + id,
+                                dataType: "json",
+                                success: function (response) {
+                                }
+                            });
+                            location.reload();
+                        } else {
+                            //swal('Your imaginary file is safe!');
+                        }
+                    });
             });
         });
-        
+
     </script>
 }
 

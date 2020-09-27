@@ -12,17 +12,85 @@ using Microsoft.Owin;
 using Microsoft.Owin.Security;
 using ManagementData.Web.Models;
 using Management.Entity;
+using System.Net.Mail;
+using System.Configuration;
+using System.Net;
+using System.IO;
+using System.Net.Mime;
 
 namespace ManagementData.Web
 {
     public class EmailService : IIdentityMessageService
     {
-        public Task SendAsync(IdentityMessage message)
+        public async Task SendAsync(IdentityMessage message)
         {
             // Plug in your email service here to send an email.
-            return Task.FromResult(0);
+            await sendMail(message.Destination, message.Subject);
+        }
+        private async Task sendMail(string destination, string newpasword)
+        {
+            try
+            {
+                MailMessage msg = new MailMessage();
+
+                var userName = ConfigurationManager.AppSettings["mailAccount"] ?? string.Empty;
+                var password = ConfigurationManager.AppSettings["mailPassword"] ?? string.Empty;
+                msg.From = new MailAddress(userName);
+                msg.To.Add(destination);
+                msg.Subject = "Forgot password";
+                msg.AlternateViews.Add(AlternateView.CreateAlternateViewFromString($"Hello, this is your new password[<strong>{newpasword}</strong>]. Please login again and change this password", null, MediaTypeNames.Text.Html));
+                //  msg.Body = $"Hello, this is your new password[{newpasword}]. Please login again and change this password";
+                //msg.Priority = MailPriority.High;
+                using (SmtpClient client = new SmtpClient())
+                {
+                    client.EnableSsl = true;
+                    client.UseDefaultCredentials = false;
+                    client.Credentials = new NetworkCredential(userName, password);
+                    client.Host = ConfigurationManager.AppSettings["Host"];
+                    client.Port = int.Parse(ConfigurationManager.AppSettings["Port"]);
+                    client.DeliveryMethod = SmtpDeliveryMethod.Network;
+
+                    client.Send(msg);
+                }
+            }
+            catch (Exception ex)
+            {
+                WriteToFile(ex.ToString());
+                // throw ex;
+            }
+
+        }
+        public void WriteToFile(string Message)
+        {
+            string path = AppDomain.CurrentDomain.BaseDirectory + "\\Logs";
+            if (!Directory.Exists(path))
+            {
+                Directory.CreateDirectory(path);
+            }
+            string filepath = AppDomain.CurrentDomain.BaseDirectory + "\\Logs\\ServiceLog_" + DateTime.Now.Date.ToShortDateString().Replace('/', '_') + ".txt";
+            if (!System.IO.File.Exists(filepath))
+            {
+                // Create a file to write to.   
+                using (StreamWriter sw = System.IO.File.CreateText(filepath))
+                {
+                    sw.WriteLine(Message);
+                }
+            }
+            else
+            {
+                using (StreamWriter sw = System.IO.File.AppendText(filepath))
+                {
+                    sw.WriteLine(Message);
+                }
+            }
         }
     }
+
+   
+
+
+    
+
 
     public class SmsService : IIdentityMessageService
     {

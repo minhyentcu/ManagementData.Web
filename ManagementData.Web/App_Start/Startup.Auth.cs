@@ -55,15 +55,15 @@ namespace ManagementData.Web
             //   consumerKey: "",
             //   consumerSecret: "");
 
-            //app.UseFacebookAuthentication(
-            //   appId: "",
-            //   appSecret: "");
+            app.UseFacebookAuthentication(
+               appId: "775396486637574",
+               appSecret: "0a7dc6c0a2e4d3193bffb42ceddee369");
 
-            //app.UseGoogleAuthentication(new GoogleOAuth2AuthenticationOptions()
-            //{
-            //    ClientId = "",
-            //    ClientSecret = ""
-            //});
+            app.UseGoogleAuthentication(new GoogleOAuth2AuthenticationOptions()
+            {
+                ClientId = "616432960663-njgm5gbnocceefamonafr1u4kp6ckqis.apps.googleusercontent.com",
+                ClientSecret = "ZvMsYh4C4YC_ZqMxvSZFtgDM"
+            });
         }
     }
 }
