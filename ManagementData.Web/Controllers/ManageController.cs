@@ -55,6 +55,7 @@ namespace ManagementData.Web.Controllers
         // GET: /Manage/Index
         public async Task<ActionResult> Index(ManageMessageId? message)
         {
+
             ViewBag.StatusMessage =
                 message == ManageMessageId.ChangePasswordSuccess ? "Your password has been changed."
                 : message == ManageMessageId.SetPasswordSuccess ? "Your password has been set."
@@ -66,6 +67,13 @@ namespace ManagementData.Web.Controllers
 
             var userId = User.Identity.GetUserId();
             var user = await UserManager.FindByIdAsync(userId);
+            var userViewModel = new UserViewModel
+            {
+                Id = userId,
+                Name = user.FullName ?? user.Email,
+                Avatar = user.Avatar ?? string.Empty
+            };
+            ViewBag.InfoUser = userViewModel;
             var model = new IndexViewModel
             {
                 HasPassword = HasPassword(),

@@ -23,7 +23,7 @@ namespace ManagementData.Web.FilterAttribute
             }
 
 
-            actionContext.Response = actionContext.Request.CreateResponse(HttpStatusCode.Unauthorized,"unauthorized");
+            actionContext.Response = new System.Net.Http.HttpResponseMessage( System.Net.HttpStatusCode.Unauthorized);
             //actionContext.Response = actionContext.Request.CreateResponse(HttpStatusCode.Unauthorized,
             //    new HttpResultModel
             //    {

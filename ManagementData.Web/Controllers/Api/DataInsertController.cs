@@ -3,14 +3,21 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.Entity;
 using System.Data.Entity.Infrastructure;
+using System.Data.SqlClient;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Threading;
 using System.Threading.Tasks;
+using System.Web;
 using System.Web.Http;
 using System.Web.Http.Description;
+using System.Web.Http.Filters;
+using System.Web.Http.Results;
 using Management.Entity;
 using ManagementData.Web.FilterAttribute;
+using ManagementData.Web.Models;
 
 namespace ManagementData.Web.Controllers.Api
 {
@@ -20,13 +27,7 @@ namespace ManagementData.Web.Controllers.Api
         private ManagementDataContext db = new ManagementDataContext();
 
 
-        //[HttpGet]
-        //public  IQueryable<DataInsert> DataInserts()
-        //{
 
-        //}
-
-        
         // GET: api/DataInsert
         public IQueryable<DataInsert> GetDataInserts()
         {
@@ -37,96 +38,109 @@ namespace ManagementData.Web.Controllers.Api
         [ResponseType(typeof(DataInsert))]
         [HttpGet]
         [Route("{id:int}")]
-        public async Task<IHttpActionResult> GetDataInsert(int? id)
+        public async Task<IHttpActionResult> GetDataInsert(int id)
         {
-            DataInsert dataInsert = await db.DataInserts.FindAsync(id);
-            if (dataInsert == null)
+            try
             {
-                return NotFound();
+                var authorization = Request.Headers.Authorization;
+                if (authorization == null || authorization.Scheme != "Bearer" || string.IsNullOrEmpty(authorization.Parameter))
+                {
+                    return Ok(new HttpResultModel { StatusCode = (int)HttpStatusCode.Unauthorized });
+                }
+
+                var user = await db.Users.FirstOrDefaultAsync(x => x.ApiToken == Request.Headers.Authorization.Parameter);
+                if (user == null)
+                {
+                    return Ok(new HttpResultModel { StatusCode = (int)HttpStatusCode.Unauthorized });
+                }
+                var data = await db.Database
+                          .SqlQuery<DataInserDto>("GetDataById  @Id , @userId", new SqlParameter { ParameterName = "Id", Value = id },
+                          new SqlParameter { ParameterName = "userId", Value = user.Id }).FirstOrDefaultAsync();
+
+                if (data != null)
+                {
+                    await db.Database.ExecuteSqlCommandAsync("EXEC Proc_DeleteData  @id ", new SqlParameter { ParameterName = "id", Value = data.Id });
+                }
+                return Ok(new HttpResultModel { StatusCode = (int)HttpStatusCode.OK, Data = data });
             }
-            return Ok(dataInsert);
+            catch (Exception ex)
+            {
+                return Ok(new HttpResultModel { StatusCode = (int)HttpStatusCode.OK, Data = ex.Message });
+            }
         }
 
         // GET: api/DataInsert/5
-        //[ResponseType(typeof(DataInsert))]
+
         [HttpGet]
         [Route("details")]
-        //[FilterAttributeData]
         public async Task<IHttpActionResult> GetLastDataInsert()
         {
-           
-            DataInsert dataInsert = await db.DataInserts.FindAsync(20);
-            if (dataInsert == null)
-            {
-                return NotFound();
-            }
-            return Ok(dataInsert);
-        }
-
-        // PUT: api/DataInsert/5
-        [ResponseType(typeof(void))]
-        public async Task<IHttpActionResult> PutDataInsert(int id, DataInsert dataInsert)
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            if (id != dataInsert.Id)
-            {
-                return BadRequest();
-            }
-
-            db.Entry(dataInsert).State = EntityState.Modified;
-
             try
             {
-                await db.SaveChangesAsync();
+                var authorization = Request.Headers.Authorization;
+                if (authorization == null || authorization.Scheme != "Bearer" || string.IsNullOrEmpty(authorization.Parameter))
+                {
+                    return Ok(new HttpResultModel { StatusCode = (int)HttpStatusCode.Unauthorized });
+                }
+
+                var user = await db.Users.FirstOrDefaultAsync(x => x.ApiToken == Request.Headers.Authorization.Parameter);
+                if (user == null)
+                {
+                    return Ok(new HttpResultModel { StatusCode = (int)HttpStatusCode.Unauthorized });
+                }
+                var data = await db.Database
+                          .SqlQuery<DataInserDto>("Proc_GetLastData  @userId", new SqlParameter { ParameterName = "userId", Value = user.Id }).FirstOrDefaultAsync();
+                if (data != null)
+                {
+                    await db.Database.ExecuteSqlCommandAsync("EXEC Proc_DeleteData  @id ", new SqlParameter { ParameterName = "id", Value = data.Id });
+                }
+
+                return Ok(new HttpResultModel { StatusCode = (int)HttpStatusCode.OK, Data = data });
             }
-            catch (DbUpdateConcurrencyException)
+            catch (Exception ex)
             {
-                if (!DataInsertExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
+                return Ok(new HttpResultModel { StatusCode = (int)HttpStatusCode.OK, Data = ex.Message });
             }
 
-            return StatusCode(HttpStatusCode.NoContent);
         }
 
         // POST: api/DataInsert
         [ResponseType(typeof(DataInsert))]
-        public async Task<IHttpActionResult> PostDataInsert(DataInsert dataInsert)
+        [HttpPost]
+        [Route("")]
+        public async Task<IHttpActionResult> PostDataInsert([FromBody] DataInserDto dataInsert)
         {
-            if (!ModelState.IsValid)
+            try
             {
-                return BadRequest(ModelState);
+                var authorization = Request.Headers.Authorization;
+                if (authorization == null || authorization.Scheme != "Bearer" || string.IsNullOrEmpty(authorization.Parameter))
+                {
+                    return Ok(new HttpResultModel { StatusCode = (int)HttpStatusCode.Unauthorized });
+                }
+
+                var user = await db.Users.FirstOrDefaultAsync(x => x.ApiToken == Request.Headers.Authorization.Parameter);
+                if (user == null)
+                {
+                    return Ok(new HttpResultModel { StatusCode = (int)HttpStatusCode.Unauthorized });
+                }
+                if (dataInsert.TimeCreate == null)
+                {
+                    dataInsert.TimeCreate = DateTime.Now;
+                }
+                var result = await db.Database
+                    .ExecuteSqlCommandAsync("EXEC Proc_InsertDataPost  @userId , @text, @timeCreate",
+                    new SqlParameter { ParameterName = "userId", Value = user.Id },
+                    new SqlParameter { ParameterName = "text", Value = dataInsert.Text },
+                    new SqlParameter { ParameterName = "timeCreate", Value = dataInsert.TimeCreate });
+
+                return Ok(new HttpResultModel { StatusCode = (int)HttpStatusCode.Created, Data = "Created" });
+            }
+            catch (Exception ex)
+            {
+
+                return Ok(new HttpResultModel { StatusCode = (int)HttpStatusCode.BadRequest, Data = ex.Message });
             }
 
-            db.DataInserts.Add(dataInsert);
-            await db.SaveChangesAsync();
-
-            return CreatedAtRoute("DefaultApi", new { id = dataInsert.Id }, dataInsert);
-        }
-
-        // DELETE: api/DataInsert/5
-        [ResponseType(typeof(DataInsert))]
-        public async Task<IHttpActionResult> DeleteDataInsert(int id)
-        {
-            DataInsert dataInsert = await db.DataInserts.FindAsync(id);
-            if (dataInsert == null)
-            {
-                return NotFound();
-            }
-
-            db.DataInserts.Remove(dataInsert);
-            await db.SaveChangesAsync();
-
-            return Ok(dataInsert);
         }
 
         protected override void Dispose(bool disposing)
@@ -138,9 +152,6 @@ namespace ManagementData.Web.Controllers.Api
             base.Dispose(disposing);
         }
 
-        private bool DataInsertExists(int id)
-        {
-            return db.DataInserts.Count(e => e.Id == id) > 0;
-        }
+
     }
 }

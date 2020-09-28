@@ -1,5 +1,7 @@
-﻿using ManagementData.Service.Repository;
+﻿using Management.Entity;
+using ManagementData.Service.Repository;
 using ManagementData.Service.ViewModel;
+using Microsoft.AspNet.Identity;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,11 +11,12 @@ using System.Web.Mvc;
 
 namespace ManagementData.Web.Controllers
 {
-    [Authorize]
+    [Authorize(Roles ="Admin")]
     public class AdminController : BaseController
     {
         private readonly IUserRepository _userRepository;
         private readonly IDataInserRepository _dataInserRepository;
+        private ManagementDataContext db = new ManagementDataContext();
         public AdminController(IUserRepository userRepository, IDataInserRepository dataInserRepository)
         {
             _userRepository = userRepository;
@@ -22,6 +25,7 @@ namespace ManagementData.Web.Controllers
         // GET: Admin
         public async Task<ActionResult> Index()
         {
+            ViewBag.InfoUser = await GetInfoUser();
             var users = _userRepository.GetAll().Select(x => new UserViewModel
             {
                 Id = x.Id,
@@ -32,6 +36,25 @@ namespace ManagementData.Web.Controllers
                 Token = x.ApiToken
             });
             return View(users);
+        }
+
+        protected async Task<ManagementData.Web.Models.UserViewModel> GetInfoUser()
+        {
+            var user = db.Users.Find(User.Identity.GetUserId());
+            return new ManagementData.Web.Models.UserViewModel
+            {
+                Id = user.Id,
+                Name = user.FullName ?? user.Email,
+                Avatar = user.Avatar ?? string.Empty
+            };
+        }
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                db.Dispose();
+            }
+            base.Dispose(disposing);
         }
     }
 }

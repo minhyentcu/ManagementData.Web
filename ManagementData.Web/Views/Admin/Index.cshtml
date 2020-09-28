@@ -12,9 +12,9 @@
             All User
         </h1>
         <ol class="breadcrumb">
-            <li><a href="#"><i class="fa fa-dashboard"></i> Home</a></li>
-            <li><a href="#">Tables</a></li>
-            <li class="active">Data tables</li>
+            <li><a href="/"><i class="fa fa-dashboard"></i> Home</a></li>
+            <li><a href="#">Admin</a></li>
+            <li class="active">Index</li>
         </ol>
     </section>
     <!-- Main content -->
@@ -49,7 +49,16 @@
                                         <td>@item.FullName</td>
                                         <td>@item.CreateDate.ToString("dd/MM/yyyy")</td>
                                         <td>
-                                            <button class="btn btn-default btn-show-data" data-id="@item.Id">Data</button>
+                                            <button class="btn btn-default btn-show-data" data-name="
+                                                    @if (string.IsNullOrEmpty(item.FullName))
+                                                    {
+                                                        @item.Email
+                                                    }
+                                                    else
+                                                    {
+                                                        @item.FullName
+                                                    }
+                                                    " data-id="@item.Id">Data</button>
                                         </td>
                                     </tr>
                                 }
@@ -113,7 +122,7 @@
 
         <div class="box">
             <div class="box-header">
-                <h3 class="box-title">All User</h3>
+                <h3 class="box-title box-title-data"></h3>
                 <div style="float: right">
                     <button type="button" class="btn btn-box-tool btn-box-tool-data-minus" data-widget="collapse"><i class="fa fa-minus"></i></button>
                     <button type="button" class="btn btn-box-tool btn-box-tool-data-remove" data-widget="remove"><i class="fa fa-remove"></i></button>
@@ -125,8 +134,7 @@
                         <tr>
                             <th>Id</th>
                             <th>Text</th>
-                            <th>Create Date</th>
-                            <th>Action</th>
+                            <th></th>
                         </tr>
                     </thead>
                 </table>
@@ -170,7 +178,7 @@
                         <div class="modal-body">
                             <textarea class="form-control data-text-edit" rows="10" name="Text"></textarea>
                             <input type="hidden" name="id" id="data-id-edit" value="" />
-                            <input type="" name="admin" value="admin" />
+                            <input type="hidden" name="admin" value="admin" />
                         </div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-default pull-left" data-dismiss="modal">Close</button>
@@ -210,6 +218,11 @@
     <![endif]-->
     <!-- Google Font -->
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,700,300italic,400italic,600italic">
+    <style>
+        .dataTables_info{
+            display:none;
+        }
+    </style>
 }
 
 
@@ -245,7 +258,7 @@
                 var userId = $(this).attr('data-id');
                 $('#example3 tbody').remove();
                 $('#example3').DataTable().destroy();
-
+                $('.box-title-data').html($(this).attr('data-name'));
                 $('#example3').DataTable({
                     "ajax": {
                         "url": "/Data/GetData",
@@ -262,26 +275,28 @@
                     drawCallback: function (response) {
                     },
                     "columns": [
-                        { "data": "Id", "name": "Id" },
-                        { "data": "Text", "name": "Text" },
-                        { "data": "TimeCreate", "name": "TimeCreate" },
+                        { "data": "Id", "name": "Id", "width": "5%" },
+                        { "data": "Text", "name": "Text", "width": "80%" },
+                        //{ "data": "TimeCreate", "name": "TimeCreate" },
                         {
                             "data": "Id",
                             "render": function (data, row, type) {
                                 return `
                                 <div class="text-center">
                                 <a  class="btn btn-info text-white btn-edit" data-id="${data}"data-toggle="modal" data-target="#modal-edit"  style="cursor:pointer">
-                                Edit <i class="fas fa-edit"></i> &nbsp;
+                                Edit  &nbsp;
                                 </a>
                                 <a  class="btn btn-danger text-white btn-delete" data-id="${data}" style="cursor:pointer">
                                 Delete <i class="fas fa-trash-alt"></i> &nbsp;
                                 </a>
                                 </div>
                                 `
-                            }
+                            },
+                            "width": "15%"
                         }
                     ],
                     "serverSide": "true",
+                    'searching': false,
                 });
                 table = $('#example3').DataTable();
                 $(".btn-box-tool-user-minus").trigger("click");
@@ -329,6 +344,10 @@
             $('body').on('click', '.btn-delete', function (e) {
                 e.preventDefault();
                 var id = $(this).attr('data-id');
+                var model = {
+                    id: id,
+                    admin: "admin"
+                };
                 swal({
                     title: 'Are you sure?',
                     text: 'Once deleted, you will not be able to recover this data!',
@@ -342,7 +361,7 @@
                             $.ajax({
                                 type: "POST",
                                 url: "/Data/DeleteData",
-                                data: "id=" + id,
+                                data: model,
                                 dataType: "json",
                                 success: function (response) {
                                 }

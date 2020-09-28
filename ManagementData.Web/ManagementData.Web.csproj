@@ -27,6 +27,7 @@
     <NuGetPackageImportStamp>
     </NuGetPackageImportStamp>
     <TypeScriptToolsVersion>3.9</TypeScriptToolsVersion>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -60,6 +61,7 @@
       <HintPath>..\packages\System.ComponentModel.Annotations.4.7.0\lib\net461\System.ComponentModel.Annotations.dll</HintPath>
     </Reference>
     <Reference Include="System.Data" />
+    <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.Runtime.CompilerServices.Unsafe, Version=4.0.4.1, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>..\packages\System.Runtime.CompilerServices.Unsafe.4.5.2\lib\netstandard2.0\System.Runtime.CompilerServices.Unsafe.dll</HintPath>
@@ -70,12 +72,9 @@
     <Reference Include="System.Web.Entity" />
     <Reference Include="System.Web.ApplicationServices" />
     <Reference Include="System.ComponentModel.DataAnnotations" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Web" />
-    <Reference Include="System.Web.Extensions" />
     <Reference Include="System.Web.Abstractions" />
+    <Reference Include="System.Web.Extensions" />
     <Reference Include="System.Web.Routing" />
     <Reference Include="System.Xml" />
     <Reference Include="System.Configuration" />
@@ -119,6 +118,7 @@
     <Reference Include="Newtonsoft.Json">
       <HintPath>..\packages\Newtonsoft.Json.12.0.2\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
+    <Reference Include="System.Xml.Linq" />
     <Reference Include="Unity.Abstractions, Version=5.11.1.0, Culture=neutral, PublicKeyToken=489b6accfaf20ef0, processorArchitecture=MSIL">
       <HintPath>..\packages\Unity.5.11.1\lib\net47\Unity.Abstractions.dll</HintPath>
     </Reference>
@@ -207,15 +207,8 @@
     <Compile Include="Controllers\AdminController.cs" />
     <Compile Include="Controllers\Api\DataInsertController.cs" />
     <Compile Include="Controllers\DataController.cs" />
-    <Compile Include="Controllers\WidgetController.cs" />
-    <Compile Include="Controllers\UIElementController.cs" />
-    <Compile Include="Controllers\TableController.cs" />
-    <Compile Include="Controllers\MailboxController.cs" />
+    <Compile Include="Controllers\ErrorController.cs" />
     <Compile Include="Controllers\LayoutController.cs" />
-    <Compile Include="Controllers\FormController.cs" />
-    <Compile Include="Controllers\ExampleController.cs" />
-    <Compile Include="Controllers\ChartController.cs" />
-    <Compile Include="Controllers\CalendarController.cs" />
     <Compile Include="Controllers\AccountController.cs" />
     <Compile Include="Controllers\BaseController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
@@ -226,8 +219,10 @@
     </Compile>
     <Compile Include="Helpers\HMTLHelperExtensions.cs" />
     <Compile Include="Models\AccountViewModels.cs" />
+    <Compile Include="Models\DataInserDto.cs" />
     <Compile Include="Models\HttpResultModel.cs" />
     <Compile Include="Models\ManageViewModels.cs" />
+    <Compile Include="Models\UserViewModel.cs" />
     <Compile Include="MVC\Pages.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Startup.cs" />
@@ -7207,11 +7202,6 @@
     <Content Include="Views\Shared\_AdminlteLayoutCollapsed.cshtml" />
     <Content Include="Views\Shared\_AdminlteLayoutBoxed.cshtml" />
     <Content Include="Views\Shared\_AdminlteFooter.cshtml" />
-    <Content Include="Views\Calendar\Index.cshtml" />
-    <Content Include="Views\Chart\ChartJS.cshtml" />
-    <Content Include="Views\Chart\Flot.cshtml" />
-    <Content Include="Views\Chart\Inline.cshtml" />
-    <Content Include="Views\Chart\Morris.cshtml" />
     <Content Include="Views\Dashboard\Dashboardv1.cshtml" />
     <Content Include="Views\Dashboard\Dashboardv2.cshtml" />
     <Content Include="Views\Example\BlankPage.cshtml" />
@@ -7224,28 +7214,16 @@
     <Content Include="Views\Example\PacePage.cshtml" />
     <Content Include="Views\Example\Profile.cshtml" />
     <Content Include="Views\Example\Register.cshtml" />
-    <Content Include="Views\Form\Advanced.cshtml" />
-    <Content Include="Views\Form\Editor.cshtml" />
-    <Content Include="Views\Form\General.cshtml" />
     <Content Include="Views\Layout\Boxed.cshtml" />
     <Content Include="Views\Layout\Collapsed.cshtml" />
     <Content Include="Views\Layout\Fixed.cshtml" />
     <Content Include="Views\Layout\Top.cshtml" />
-    <Content Include="Views\Mailbox\Compose.cshtml" />
-    <Content Include="Views\Mailbox\Index.cshtml" />
-    <Content Include="Views\Mailbox\Read.cshtml" />
     <Content Include="Views\Table\Data.cshtml" />
     <Content Include="Views\Table\Simple.cshtml" />
-    <Content Include="Views\UIElement\Button.cshtml" />
-    <Content Include="Views\UIElement\General.cshtml" />
-    <Content Include="Views\UIElement\Icon.cshtml" />
-    <Content Include="Views\UIElement\Modal.cshtml" />
-    <Content Include="Views\UIElement\Slider.cshtml" />
-    <Content Include="Views\UIElement\Timeline.cshtml" />
-    <Content Include="Views\Widget\Index.cshtml" />
     <Content Include="Views\Admin\Index.cshtml" />
     <Content Include="Views\Data\Index.cshtml" />
     <Content Include="Scripts\sweetalert.min.js" />
+    <Content Include="Views\Error\PageNotFound.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
