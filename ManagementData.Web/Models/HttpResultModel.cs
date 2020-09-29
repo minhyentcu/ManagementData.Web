@@ -7,7 +7,7 @@ namespace ManagementData.Web.Models
 {
     public class HttpResultModel
     {
-        public int StatusCode { get; set; }
-        public object Data { get; set; }
+        public string Text { get; set; }
+        public DateTime? TimeCreate { get; set; }
     }
 }

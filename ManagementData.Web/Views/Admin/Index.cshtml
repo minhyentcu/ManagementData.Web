@@ -58,7 +58,9 @@
                                                     {
                                                         @item.FullName
                                                     }
-                                                    " data-id="@item.Id">Data</button>
+                                                    " data-id="@item.Id">
+                                                Data
+                                            </button>
                                         </td>
                                     </tr>
                                 }
@@ -120,20 +122,32 @@
             <!-- /.modal-dialog -->
         </div>
 
-        <div class="box">
+        <div class="box box-data-user" style="display:none">
             <div class="box-header">
                 <h3 class="box-title box-title-data"></h3>
                 <div style="float: right">
+                    <button type="button" class="btn btn-success btn-add-data " data-id="" data-toggle="modal" data-target="#modal-insert">
+                        Create New
+                    </button>
+                    <a href="/Data/Export/?userId=" class="btn btn-primary btn-export">Export</a>
+                    <button class="btn btn-primary btn-import">Import</button>
                     <button type="button" class="btn btn-box-tool btn-box-tool-data-minus" data-widget="collapse"><i class="fa fa-minus"></i></button>
-                    <button type="button" class="btn btn-box-tool btn-box-tool-data-remove" data-widget="remove"><i class="fa fa-remove"></i></button>
                 </div>
+                <form method="post" action="/Data/Import" style="display:none" enctype="multipart/form-data">
+                    <input id="file-import" hidden type="file" name="file" accept=".xls,.xlsx" />
+                    <input id="user-import" hidden type="text" name="userId" value="" />
+                    <input   type="hidden" name="admin" value="admin" />
+                    <button type="submit" class="btn btn-primary btn-submit-import">Submit</button>
+                </form>
+
             </div>
             <div class="box-body">
                 <table id="example3" class="table table-bordered table-hover">
                     <thead>
                         <tr>
-                            <th>Id</th>
+                            <th>STT</th>
                             <th>Text</th>
+                            <th>TimeCreate</th>
                             <th></th>
                         </tr>
                     </thead>
@@ -190,6 +204,33 @@
             </div>
             <!-- /.modal-dialog -->
         </div>
+
+
+        <div class="modal fade" id="modal-insert">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <form method="post" action="/Data/InsertData" enctype="multipart/form-data">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                            <h4 class="modal-title">Inser Data</h4>
+                        </div>
+                        <div class="modal-body">
+                            <textarea class="form-control" rows="10" name="Text"></textarea>
+                            <input type="hidden" id="user-id-insert" name="userId" value="" />
+                            <input type="hidden" name="admin" value="admin" />
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-default pull-left" data-dismiss="modal">Close</button>
+                            <button type="submit" class="btn btn-primary">Save changes</button>
+                        </div>
+                    </form>
+                </div>
+                <!-- /.modal-content -->
+            </div>
+            <!-- /.modal-dialog -->
+        </div>
     </section>
     <!-- /.content -->
 </div>
@@ -219,8 +260,8 @@
     <!-- Google Font -->
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,700,300italic,400italic,600italic">
     <style>
-        .dataTables_info{
-            display:none;
+        .dataTables_info {
+            display: none;
         }
     </style>
 }
@@ -259,6 +300,10 @@
                 $('#example3 tbody').remove();
                 $('#example3').DataTable().destroy();
                 $('.box-title-data').html($(this).attr('data-name'));
+                $('.btn-add-data').attr('data-id', userId);
+                $('.box-data-user').show();
+                $('#user-import').val(userId);
+                $('.btn-export').attr('data-id', userId);
                 $('#example3').DataTable({
                     "ajax": {
                         "url": "/Data/GetData",
@@ -268,31 +313,33 @@
                         },
                         "dataType": "json",
                         "dataSrc": function (json) {
-                          
+                            var idUser = $('.btn-export').attr('data-id');
+                            var urlExport = "/Data/Export/?userId=" + idUser + "&page=" + json.page + "&size=" + json.size + "&orderSort=" + json.orderSort;
+                            $('.btn-export').attr('href', urlExport);
                             return json.dataObject;
                         }
                     },
                     drawCallback: function (response) {
                     },
                     "columns": [
-                        { "data": "Id", "name": "Id", "width": "5%" },
-                        { "data": "Text", "name": "Text", "width": "80%" },
-                        //{ "data": "TimeCreate", "name": "TimeCreate" },
+                        { "data": "Stt", "name": "Stt", "width": "5%" },
+                        { "data": "Text", "name": "Text", "width": "75%" },
+                        { "data": "TimeString", "name": "TimeString", "width": "10%" },
                         {
                             "data": "Id",
                             "render": function (data, row, type) {
                                 return `
-                                <div class="text-center">
-                                <a  class="btn btn-info text-white btn-edit" data-id="${data}"data-toggle="modal" data-target="#modal-edit"  style="cursor:pointer">
-                                Edit  &nbsp;
-                                </a>
-                                <a  class="btn btn-danger text-white btn-delete" data-id="${data}" style="cursor:pointer">
-                                Delete <i class="fas fa-trash-alt"></i> &nbsp;
-                                </a>
-                                </div>
-                                `
+                                    <div class="text-center">
+                                    <a  class="btn btn-info text-white btn-edit" data-id="${data}"data-toggle="modal" data-target="#modal-edit"  style="cursor:pointer">
+                                    Edit  &nbsp;
+                                    </a>
+                                    <a  class="btn btn-danger text-white btn-delete" data-id="${data}" style="cursor:pointer">
+                                    Delete <i class="fas fa-trash-alt"></i> &nbsp;
+                                    </a>
+                                    </div>
+                                    `
                             },
-                            "width": "15%"
+                            "width": "10%"
                         }
                     ],
                     "serverSide": "true",
@@ -330,7 +377,13 @@
                 });
             });
 
-            
+            // insert data
+            $('.btn-add-data').click(function (e) {
+                e.preventDefault();
+                $('#user-id-insert').val($(this).attr('data-id'));
+            });
+
+
             $('body').on('mouseenter', '#example3 tbody tr ', function () {
                 data = table.row(this).data();
             });
@@ -371,6 +424,15 @@
                             //swal('Your imaginary file is safe!');
                         }
                     });
+            });
+
+            $('.btn-import').click(function (e) {
+                e.preventDefault();
+                $('#file-import').trigger('click');
+            });
+
+            $('#file-import').on('change', function () {
+                $('.btn-submit-import').trigger('click');
             });
         });
 

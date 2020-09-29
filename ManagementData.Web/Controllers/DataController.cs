@@ -62,12 +62,33 @@ namespace ManagementData.Web.Controllers
 
 
         [HttpPost]
-        public async Task<ActionResult> InsertData(string text, string userId)
+        public async Task<ActionResult> InsertData(string text, string userId, string admin)
         {
-            var result = await db.Database.ExecuteSqlCommandAsync("EXEC Proc_InsertData  @userId , @text", new SqlParameter { ParameterName = "userId", Value = userId }, new SqlParameter { ParameterName = "text", Value = text });
-            //db.Database
-            //       .SqlQuery<DataInsert>("Proc_InsertData  @userId , @text", new SqlParameter { ParameterName = "userId", Value = userId }, new SqlParameter { ParameterName = "text", Value = text });
-            return RedirectToAction<HomeController>(nameof(Index));
+            try
+            {
+                var datas = text.Split(new string[] { "\r\n" }, StringSplitOptions.None);
+                foreach (var item in datas)
+                {
+                    if (!string.IsNullOrEmpty(item))
+                    {
+                        await db.Database.ExecuteSqlCommandAsync("EXEC Proc_InsertData  @userId , @text", new SqlParameter { ParameterName = "userId", Value = userId }, new SqlParameter { ParameterName = "text", Value = item });
+                    }
+                }
+                if (!string.IsNullOrEmpty(admin))
+                {
+                    return RedirectToAction<AdminController>(nameof(Index));
+                }
+                return RedirectToAction<HomeController>(nameof(Index));
+            }
+            catch (Exception ex)
+            {
+                if (!string.IsNullOrEmpty(admin))
+                {
+                    return RedirectToAction<AdminController>(nameof(Index));
+                }
+                return RedirectToAction<HomeController>(nameof(Index));
+            }
+
         }
 
         [HttpGet]
@@ -84,15 +105,29 @@ namespace ManagementData.Web.Controllers
                     orderSort = 0;
                 }
                 var search = string.Empty;
-                page = start / 10 + 1;
                 int length = Convert.ToInt32(Request["length"]) < 0 ? 50 : Convert.ToInt32(Request["length"]);
+                page = (start / length) + 1;
+
+
+                //var datas = await db.Database
+                //  .SqlQuery<DataInsert>($"SELECT* FROM DataInserts where UserId = '{userId}' ORDER BY TimeCreate desc  OFFSET({page} - 1) * {length} ROWS FETCH NEXT {length} ROWS ONLY").ToListAsync();
                 var datas = await db.Database
-                      .SqlQuery<DataInsert>("PROC_GetData_Paging  @page , @size, @userId, @orderId, @search",
-                      new SqlParameter { ParameterName = "userId", Value = userId },
-                      new SqlParameter { ParameterName = "page", Value = page },
-                      new SqlParameter { ParameterName = "size", Value = length },
-                      new SqlParameter { ParameterName = "orderId", Value = orderSort },
-                      new SqlParameter { ParameterName = "search", Value = search }).ToListAsync();
+                  .SqlQuery<DataDto>($"SELECT* FROM DataInserts where UserId = '{userId}' ORDER BY TimeCreate desc  OFFSET({page} - 1) * {length} ROWS FETCH NEXT {length} ROWS ONLY").ToListAsync();
+
+                //var count = start / 10;
+                var dataCount = datas.Count();
+                for (int i = 0; i < dataCount; i++)
+                {
+                    datas[i].Stt = i + 1 + (page - 1) * length;
+                    datas[i].TimeString = datas[i].TimeCreate.ToString("yyyy-MM-dd hh:mm:ss.fff");
+                }
+                //var datas = await db.Database
+                //      .SqlQuery<DataInsert>("PROC_GetData_Paging  @page , @size, @userId, @orderId, @search",
+                //      new SqlParameter { ParameterName = "userId", Value = userId },
+                //      new SqlParameter { ParameterName = "page", Value = page },
+                //      new SqlParameter { ParameterName = "size", Value = length },
+                //      new SqlParameter { ParameterName = "orderId", Value = orderSort },
+                //      new SqlParameter { ParameterName = "search", Value = search }).ToListAsync();
                 return Json(new { dataObject = datas, idlast = idLast, page = page, size = length, orderSort = orderSort }, JsonRequestBehavior.AllowGet);
 
             }
@@ -185,7 +220,6 @@ namespace ManagementData.Web.Controllers
             }
             catch (Exception ex)
             {
-
                 return null;
             }
 
@@ -228,46 +262,49 @@ namespace ManagementData.Web.Controllers
 
 
         [HttpPost]
-        public async Task<ActionResult> Import(string userId)
+        public async Task<ActionResult> Import(string userId, string admin)
         {
             try
             {
                 HttpPostedFileBase file = Request.Files[0];
+
                 ExcelPackage.LicenseContext = LicenseContext.Commercial;
                 using (ExcelPackage excelPackage = new ExcelPackage(file.InputStream))
                 {
                     ExcelWorksheet worksheet = excelPackage.Workbook.Worksheets.FirstOrDefault();
                     int rows = worksheet.Dimension.Rows; // 20
                     int columns = worksheet.Dimension.Columns; // 7
-
-
                     // loop through the worksheet rows and columns
-                    for (int i = 2; i <= rows; i++)
+                    for (int i = rows; i > 0; i--)
                     {
                         try
                         {
-                            var text = worksheet.Cells[i, 3].Value.ToString();
-                            DateTime dateTime;
-                            DateTime.TryParseExact(worksheet.Cells[i, 4].Value.ToString(), "yyyy-MM-dd hh:mm:ss.fff", CultureInfo.InvariantCulture, DateTimeStyles.None, out dateTime);
+                            var text = worksheet.Cells[i, 1].Value.ToString();
                             await db.Database.ExecuteSqlCommandAsync("EXEC Proc_InsertDataPost  @userId , @text, @timeCreate",
                                 new SqlParameter { ParameterName = "userId", Value = userId },
                                 new SqlParameter { ParameterName = "text", Value = text },
-                                new SqlParameter { ParameterName = "timeCreate", Value = dateTime });
+                                new SqlParameter { ParameterName = "timeCreate", Value = DateTime.Now });
                         }
                         catch (Exception ex)
                         {
 
                         }
                     }
+                    if (!string.IsNullOrEmpty(admin))
+                    {
+                        return RedirectToAction<AdminController>(nameof(Index));
+                    }
+                    return RedirectToAction<HomeController>(nameof(Index));
                 };
             }
             catch (Exception ex)
             {
+                if (!string.IsNullOrEmpty(admin))
+                {
+                    return RedirectToAction<AdminController>(nameof(Index));
+                }
                 return RedirectToAction<HomeController>(nameof(Index));
             }
-
-            return RedirectToAction<HomeController>(nameof(Index));
-
         }
 
         protected async Task<UserViewModel> GetInfoUser()

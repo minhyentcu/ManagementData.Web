@@ -35,39 +35,39 @@ namespace ManagementData.Web.Controllers.Api
         }
 
         // GET: api/DataInsert/5
-        [ResponseType(typeof(DataInsert))]
-        [HttpGet]
-        [Route("{id:int}")]
-        public async Task<IHttpActionResult> GetDataInsert(int id)
-        {
-            try
-            {
-                var authorization = Request.Headers.Authorization;
-                if (authorization == null || authorization.Scheme != "Bearer" || string.IsNullOrEmpty(authorization.Parameter))
-                {
-                    return Ok(new HttpResultModel { StatusCode = (int)HttpStatusCode.Unauthorized });
-                }
+        //[ResponseType(typeof(DataInsert))]
+        //[HttpGet]
+        //[Route("{id:int}")]
+        //public async Task<IHttpActionResult> GetDataInsert(int id)
+        //{
+        //    try
+        //    {
+        //        var authorization = Request.Headers.Authorization;
+        //        if (authorization == null || authorization.Scheme != "Bearer" || string.IsNullOrEmpty(authorization.Parameter))
+        //        {
+        //            return Ok(new HttpResultModel { StatusCode = (int)HttpStatusCode.Unauthorized });
+        //        }
 
-                var user = await db.Users.FirstOrDefaultAsync(x => x.ApiToken == Request.Headers.Authorization.Parameter);
-                if (user == null)
-                {
-                    return Ok(new HttpResultModel { StatusCode = (int)HttpStatusCode.Unauthorized });
-                }
-                var data = await db.Database
-                          .SqlQuery<DataInserDto>("GetDataById  @Id , @userId", new SqlParameter { ParameterName = "Id", Value = id },
-                          new SqlParameter { ParameterName = "userId", Value = user.Id }).FirstOrDefaultAsync();
+        //        var user = await db.Users.FirstOrDefaultAsync(x => x.ApiToken == Request.Headers.Authorization.Parameter);
+        //        if (user == null)
+        //        {
+        //            return Ok(new HttpResultModel { StatusCode = (int)HttpStatusCode.Unauthorized });
+        //        }
+        //        var data = await db.Database
+        //                  .SqlQuery<DataInserDto>("GetDataById  @Id , @userId", new SqlParameter { ParameterName = "Id", Value = id },
+        //                  new SqlParameter { ParameterName = "userId", Value = user.Id }).FirstOrDefaultAsync();
 
-                if (data != null)
-                {
-                    await db.Database.ExecuteSqlCommandAsync("EXEC Proc_DeleteData  @id ", new SqlParameter { ParameterName = "id", Value = data.Id });
-                }
-                return Ok(new HttpResultModel { StatusCode = (int)HttpStatusCode.OK, Data = data });
-            }
-            catch (Exception ex)
-            {
-                return Ok(new HttpResultModel { StatusCode = (int)HttpStatusCode.OK, Data = ex.Message });
-            }
-        }
+        //        if (data != null)
+        //        {
+        //            await db.Database.ExecuteSqlCommandAsync("EXEC Proc_DeleteData  @id ", new SqlParameter { ParameterName = "id", Value = data.Id });
+        //        }
+        //        return Ok(new HttpResultModel { StatusCode = (int)HttpStatusCode.OK, Data = data });
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return Ok(new HttpResultModel { StatusCode = (int)HttpStatusCode.OK, Data = ex.Message });
+        //    }
+        //}
 
         // GET: api/DataInsert/5
 
@@ -80,13 +80,13 @@ namespace ManagementData.Web.Controllers.Api
                 var authorization = Request.Headers.Authorization;
                 if (authorization == null || authorization.Scheme != "Bearer" || string.IsNullOrEmpty(authorization.Parameter))
                 {
-                    return Ok(new HttpResultModel { StatusCode = (int)HttpStatusCode.Unauthorized });
+                    return Ok(new { });
                 }
 
                 var user = await db.Users.FirstOrDefaultAsync(x => x.ApiToken == Request.Headers.Authorization.Parameter);
                 if (user == null)
                 {
-                    return Ok(new HttpResultModel { StatusCode = (int)HttpStatusCode.Unauthorized });
+                    return Ok(new { });
                 }
                 var data = await db.Database
                           .SqlQuery<DataInserDto>("Proc_GetLastData  @userId", new SqlParameter { ParameterName = "userId", Value = user.Id }).FirstOrDefaultAsync();
@@ -95,11 +95,11 @@ namespace ManagementData.Web.Controllers.Api
                     await db.Database.ExecuteSqlCommandAsync("EXEC Proc_DeleteData  @id ", new SqlParameter { ParameterName = "id", Value = data.Id });
                 }
 
-                return Ok(new HttpResultModel { StatusCode = (int)HttpStatusCode.OK, Data = data });
+                return Ok(new HttpResultModel { Text = data.Text, TimeCreate = data.TimeCreate });
             }
             catch (Exception ex)
             {
-                return Ok(new HttpResultModel { StatusCode = (int)HttpStatusCode.OK, Data = ex.Message });
+                return Ok(new { });
             }
 
         }
@@ -115,13 +115,13 @@ namespace ManagementData.Web.Controllers.Api
                 var authorization = Request.Headers.Authorization;
                 if (authorization == null || authorization.Scheme != "Bearer" || string.IsNullOrEmpty(authorization.Parameter))
                 {
-                    return Ok(new HttpResultModel { StatusCode = (int)HttpStatusCode.Unauthorized });
+                    return Ok(new { });
                 }
 
                 var user = await db.Users.FirstOrDefaultAsync(x => x.ApiToken == Request.Headers.Authorization.Parameter);
                 if (user == null)
                 {
-                    return Ok(new HttpResultModel { StatusCode = (int)HttpStatusCode.Unauthorized });
+                    return Ok(new { });
                 }
                 if (dataInsert.TimeCreate == null)
                 {
@@ -133,12 +133,11 @@ namespace ManagementData.Web.Controllers.Api
                     new SqlParameter { ParameterName = "text", Value = dataInsert.Text },
                     new SqlParameter { ParameterName = "timeCreate", Value = dataInsert.TimeCreate });
 
-                return Ok(new HttpResultModel { StatusCode = (int)HttpStatusCode.Created, Data = "Created" });
+                return Ok(new { Text = "Created" });
             }
             catch (Exception ex)
             {
-
-                return Ok(new HttpResultModel { StatusCode = (int)HttpStatusCode.BadRequest, Data = ex.Message });
+                return Ok(new { });
             }
 
         }
