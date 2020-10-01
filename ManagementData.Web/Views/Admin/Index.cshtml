@@ -129,14 +129,14 @@
                     <button type="button" class="btn btn-success btn-add-data " data-id="" data-toggle="modal" data-target="#modal-insert">
                         Create New
                     </button>
-                    <a href="/Data/Export/?userId=" class="btn btn-primary btn-export">Export</a>
+                    <a href="/Data/Export/?userId=" data-windowId="@Guid.NewGuid().ToString()" class="btn btn-primary btn-export">Export</a>
                     <button class="btn btn-primary btn-import">Import</button>
                     <button type="button" class="btn btn-box-tool btn-box-tool-data-minus" data-widget="collapse"><i class="fa fa-minus"></i></button>
                 </div>
                 <form method="post" action="/Data/Import" style="display:none" enctype="multipart/form-data">
-                    <input id="file-import" hidden type="file" name="file" accept=".xls,.xlsx" />
+                    <input id="file-import" hidden type="file" name="file" accept=".xls,.xlsx,.txt" />
                     <input id="user-import" hidden type="text" name="userId" value="" />
-                    <input   type="hidden" name="admin" value="admin" />
+                    <input type="hidden" name="admin" value="admin" />
                     <button type="submit" class="btn btn-primary btn-submit-import">Submit</button>
                 </form>
 
@@ -148,7 +148,10 @@
                             <th>STT</th>
                             <th>Text</th>
                             <th>TimeCreate</th>
-                            <th></th>
+                            <th>
+                                <button class="btn btn-danger btn-sm btn-delete-all" data-user="">Delete</button>
+                                <button class="btn btn-sm btn-select-all btn-info" data-slect="false" data-user=""> Select All</button>
+                            </th>
                         </tr>
                     </thead>
                 </table>
@@ -263,6 +266,15 @@
         .dataTables_info {
             display: none;
         }
+
+        .cb-delete {
+            /* margin-left: 4% !important;*/
+        }
+
+        input.cb-delete {
+            width: 20px;
+            height: 20px;
+        }
     </style>
 }
 
@@ -284,6 +296,7 @@
     <!-- AdminLTE for demo purposes -->
     <script src="~/Content/adminlte/dist/js/demo.js"></script>
     <script src="~/Scripts/sweetalert.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.min.js" defer></script>
     <!-- page script -->
     <script>
         $(function () {
@@ -314,7 +327,8 @@
                         "dataType": "json",
                         "dataSrc": function (json) {
                             var idUser = $('.btn-export').attr('data-id');
-                            var urlExport = "/Data/Export/?userId=" + idUser + "&page=" + json.page + "&size=" + json.size + "&orderSort=" + json.orderSort;
+                            var windowId = $('btn-export').attr('data-windowId');
+                            var urlExport = "/Data/Export/?userId=" + idUser + "&page=" + json.page + "&size=" + json.size + "&orderSort=" + json.orderSort + "&windowId=" + windowId;
                             $('.btn-export').attr('href', urlExport);
                             return json.dataObject;
                         }
@@ -323,27 +337,29 @@
                     },
                     "columns": [
                         { "data": "Stt", "name": "Stt", "width": "5%" },
-                        { "data": "Text", "name": "Text", "width": "75%" },
+                        { "data": "Text", "name": "Text", "width": "70%" },
                         { "data": "TimeString", "name": "TimeString", "width": "10%" },
                         {
                             "data": "Id",
                             "render": function (data, row, type) {
                                 return `
-                                    <div class="text-center">
-                                    <a  class="btn btn-info text-white btn-edit" data-id="${data}"data-toggle="modal" data-target="#modal-edit"  style="cursor:pointer">
-                                    Edit  &nbsp;
-                                    </a>
-                                    <a  class="btn btn-danger text-white btn-delete" data-id="${data}" style="cursor:pointer">
-                                    Delete <i class="fas fa-trash-alt"></i> &nbsp;
-                                    </a>
-                                    </div>
-                                    `
+                                        <div class="text-center">
+                                        <a  class="btn btn-info text-white btn-edit" data-id="${data}"data-toggle="modal" data-target="#modal-edit"  style="cursor:pointer">
+                                        Edit  &nbsp;
+                                        </a>
+                                        <a  class="btn btn-danger text-white btn-delete" data-id="${data}" style="cursor:pointer">
+                                        Delete <i class="fas fa-trash-alt"></i> &nbsp;
+                                        </a>
+                                        <input type="checkbox" class="cb-delete" name="item-data" data-id="${data}" value="${data}" name="cb-delete">
+                                        </div>
+                                        `
                             },
-                            "width": "10%"
+                            "width": "15%"
                         }
                     ],
                     "serverSide": "true",
                     'searching': false,
+                    "ordering": false
                 });
                 table = $('#example3').DataTable();
                 $(".btn-box-tool-user-minus").trigger("click");
@@ -434,8 +450,80 @@
             $('#file-import').on('change', function () {
                 $('.btn-submit-import').trigger('click');
             });
-        });
 
+
+            //btn select all
+            $('.btn-select-all').click(function (e) {
+                e.preventDefault();
+                var check = $(this).attr('data-slect');
+                checkboxes = $(':checkbox');
+                if (check == "false") {
+                    $(this).attr('data-slect', 'true');
+                    checkboxes.prop('checked', true);
+                }
+                else {
+                    $(this).attr('data-slect', 'false');
+                    checkboxes.prop('checked', false);
+                }
+            });
+            //btn select all
+
+            // btn delete all item
+
+            $('body').on('click', '.btn-delete-all', function (e) {
+                e.preventDefault();
+                var dataItems = [];
+                $.each($("input[name='item-data']:checked"), function () {
+                    dataItems.push($(this).val());
+                });
+                var modelPost = {
+                    dataItems: dataItems,
+                    admin: 'admin'
+                };
+                swal({
+                    title: 'Are you sure?',
+                    text: 'Once deleted, you will not be able to recover this data!',
+                    icon: 'warning',
+                    buttons: true,
+                    dangerMode: true,
+                })
+                    .then((willDelete) => {
+                        if (willDelete) {
+                            $.ajax({
+                                type: "POST",
+                                url: "/Data/DeleteAllData",
+                                data: modelPost,
+                                dataType: "json",
+                                success: function (response) {
+                                }
+                            });
+                            location.reload();
+                        } else {
+                            //swal('Your imaginary file is safe!');
+                        }
+                    });
+            });
+            // btn delete all item
+
+            $('.btn-export').click(function (e) {
+                //e.preventDefault();
+                checkCookie();
+            });
+          
+        });
+        function checkCookie() {
+            var cookieVal = $.cookie($("input[name='windowid']").val());
+            if (cookieVal == null || cookieVal === 'undefined') {
+                setTimeout("checkCookie();", 1000);
+            }
+            else {
+                var table = $('#example3').DataTable();
+                setInterval(function () {
+                    table.ajax.reload();
+                    console.log("reload");
+                }, 3000);
+            }
+        };
     </script>
 }
 
