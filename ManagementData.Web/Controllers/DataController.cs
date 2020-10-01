@@ -148,8 +148,9 @@ namespace ManagementData.Web.Controllers
                     datas[i].Stt = i + 1 + (page - 1) * length;
                     datas[i].TimeString = datas[i].TimeCreate.ToString("yyyy-MM-dd hh:mm:ss.fff");
                 }
-
-                return Json(new { dataObject = datas, idlast = idLast, page = page, size = length, orderSort = orderSort }, JsonRequestBehavior.AllowGet);
+                var countData = await db.Database
+                  .SqlQuery<int>($"SELECT Count(Id) FROM DataInserts where UserId = '{userId}' ").FirstOrDefaultAsync();
+                return Json(new { dataObject = datas, idlast = idLast, page = page, size = length, orderSort = orderSort, countData = countData }, JsonRequestBehavior.AllowGet);
 
             }
             catch (Exception ex)

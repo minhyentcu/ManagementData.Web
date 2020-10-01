@@ -142,7 +142,7 @@
 
             </div>
             <div class="box-body">
-                <table id="example3" class="table table-bordered table-hover">
+                <table id="example3" class="table table-bordered table-hover" style="width:100%">
                     <thead>
                         <tr>
                             <th>STT</th>
@@ -154,6 +154,12 @@
                             </th>
                         </tr>
                     </thead>
+                    <tfoot>
+                        <tr>
+                            <th></th>
+                            <th colspan="3" style="text-align:right">Total:</th>
+                        </tr>
+                    </tfoot>
                 </table>
             </div>
         </div>
@@ -306,6 +312,7 @@
             var table;
             var data;
         })
+        var stringData;
         $(document).ready(function () {
             //load data modal
             $('.btn-show-data').click(function () {
@@ -330,10 +337,15 @@
                             var windowId = $('btn-export').attr('data-windowId');
                             var urlExport = "/Data/Export/?userId=" + idUser + "&page=" + json.page + "&size=" + json.size + "&orderSort=" + json.orderSort + "&windowId=" + windowId;
                             $('.btn-export').attr('href', urlExport);
+                            stringData = "Total records: " + json.countData;
                             return json.dataObject;
                         }
                     },
                     drawCallback: function (response) {
+                    },
+                    footerCallback: function (row, data, start, end, display) {
+                        var api = this.api();
+                        $(api.column(3).footer()).html(stringData);
                     },
                     "columns": [
                         { "data": "Stt", "name": "Stt", "width": "5%" },

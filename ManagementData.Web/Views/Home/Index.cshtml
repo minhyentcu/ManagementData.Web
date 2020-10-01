@@ -42,20 +42,28 @@
                     </div>
                     <!-- /.box-header -->
                     <div class="box-body">
-                        <table id="example2" class="table table-bordered table-hover">
-                            <thead>
-                                <tr>
-                                    <th class="text-center" style="text-align:center !important">STT</th>
-                                    <th class="text-center" style="text-align:center !important">Text</th>
-                                    <th class="text-center" style="text-align:center !important">Create Date</th>
-                                    <th class="text-center" style="text-align:center !important">
-                                        <button class="btn btn-danger btn-sm btn-delete-all">Delete</button>
-                                        <button class="btn btn-sm btn-select-all btn-info" data-slect="false"> Select All</button>
+                        <div class="col-12">
+                            <table id="example2" class="table table-bordered table-hover" style="width:100%">
+                                <thead>
+                                    <tr>
+                                        <th class="text-center">STT</th>
+                                        <th class="text-center">Text</th>
+                                        <th class="text-center">Create Date</th>
+                                        <th class="text-center">
+                                            <button class="btn btn-danger btn-sm btn-delete-all">Delete</button>
+                                            <button class="btn btn-sm btn-select-all btn-info" data-slect="false"> Select All</button>
 
-                                    </th>
-                                </tr>
-                            </thead>
-                        </table>
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tfoot>
+                                    <tr>
+                                        <th></th>
+                                        <th colspan="3" style="text-align:right">Total:</th>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
                     </div>
                     <!-- /.box-body -->
                 </div>
@@ -156,6 +164,9 @@
             width: 20px;
             height: 20px;
         }
+        #example2_info{
+            display:none;
+        }
     </style>
 }
 
@@ -187,8 +198,8 @@
             var model = {
                 userId: idUser,
                 idLast: 0,
-
             };
+            var stringData;
             var url = "/Data/GetData/?userId=" + idUser + "&idLast=" + idLast;
             $('#example2').DataTable({
                 "ajax": {
@@ -200,14 +211,23 @@
                     },
                     "dataType": "json",
                     "dataSrc": function (json) {
+                        //var api = this.api();
                         var idUser = $('#userId').val();
                         var windowId = $('btn-export').attr('data-windowId');
                         var urlExport = "/Data/Export/?userId=" + idUser + "&page=" + json.page + "&size=" + json.size + "&orderSort=" + json.orderSort + "&windowId=" + windowId;
+                        $('#example2_info').html("Total records: " + json.countData);
+                        stringData = $('#example2_info').html();
                         $('.btn-export').attr('href', urlExport);
                         return json.dataObject;
                     }
                 },
                 drawCallback: function (response) {
+                    console.log(response);
+                },
+                footerCallback: function (row, data, start, end, display,json) {
+                    console.log(data);
+                    var api = this.api();
+                    $(api.column(3).footer()).html(stringData);
                 },
                 "columns": [
                     { "data": "Stt", "name": "Stt", "width": "5%" },
@@ -233,10 +253,15 @@
                 ],
                 "serverSide": "true",
                 "searching": false,
-                "ordering": false
+                "ordering": false,
+                "recordsTotal":100,
+                
             });
+            $("div.toolbar").html('<b>Custom tool bar! Text/images etc.</b>');
+            $('#example2_info').html('');
             var table = $('#example2').DataTable();
             var data;
+            $('#example2_info').html('');
             $('#example2 tbody').on('click', 'tr', function () {
                 data = table.row(this).data();
             });
