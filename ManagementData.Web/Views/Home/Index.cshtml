@@ -167,6 +167,9 @@
         #example2_info{
             display:none;
         }
+        .text-break{
+            word-break:break-all;
+        }
     </style>
 }
 
@@ -231,8 +234,8 @@
                 },
                 "columns": [
                     { "data": "Stt", "name": "Stt", "width": "5%" },
-                    { "data": "Text", "name": "Text", "width": "70%" },
-                    { "data": "TimeString", "name": "TimeString", "width": "10%" },
+                    { "data": "Text", "name": "Text", "width": "70%", "className": "text-break"  },
+                    { "data": "TimeString", "name": "TimeString", "width": "10%"},
                     {
                         "data": "Id",
                         "render": function (data, row, type) {
