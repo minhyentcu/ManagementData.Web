@@ -5,6 +5,7 @@ using OfficeOpenXml;
 using OfficeOpenXml.Style;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Data.SqlClient;
 using System.Drawing;
 using System.Globalization;
@@ -298,17 +299,17 @@ namespace ManagementData.Web.Controllers
 
         }
 
-
-        [HttpPost]
-        public async Task<ActionResult> Import(string userId, string admin)
+        private DataTable GetDataFromFile(string userId)
         {
             try
             {
                 HttpPostedFileBase file = Request.Files[0];
 
                 var path = Path.GetExtension(file.FileName);
-
-
+                DataTable dataTable = new DataTable();
+                dataTable.Columns.Add(new DataColumn("Text"));
+                dataTable.Columns.Add(new DataColumn("TimeCreate"));
+                dataTable.Columns.Add(new DataColumn("UserId"));
                 switch (path)
                 {
                     case ".txt":
@@ -320,57 +321,126 @@ namespace ManagementData.Web.Controllers
                                 var line = stream.ReadLine();
                                 if (!string.IsNullOrEmpty(line))
                                 {
-                                    await db.Database.ExecuteSqlCommandAsync("EXEC Proc_InsertDataPost  @userId , @text, @timeCreate",
-                                       new SqlParameter { ParameterName = "userId", Value = userId },
-                                       new SqlParameter { ParameterName = "text", Value = line },
-                                       new SqlParameter { ParameterName = "timeCreate", Value = DateTime.Now });
+                                    dataTable.Rows.Add(line, DateTime.Now, userId);
                                 }
                             }
-
-                            if (!string.IsNullOrEmpty(admin))
-                            {
-                                return RedirectToAction<AdminController>(nameof(Index));
-                            }
-                            return RedirectToAction<HomeController>(nameof(Index));
+                            return dataTable;
                         }
-                    case ".xls":
-                    case ".xlsx":
-                        // Excel
-                        ExcelPackage.LicenseContext = LicenseContext.Commercial;
-                        using (ExcelPackage excelPackage = new ExcelPackage(file.InputStream))
-                        {
-                            ExcelWorksheet worksheet = excelPackage.Workbook.Worksheets.FirstOrDefault();
-                            int rows = worksheet.Dimension.Rows; // 20
-                            int columns = worksheet.Dimension.Columns; // 7
-                                                                       // loop through the worksheet rows and columns
-                            for (int i = 1; i <= rows; i++)
-                            {
-                                try
-                                {
-                                    var text = worksheet.Cells[i, 1].Value.ToString();
-                                    await db.Database.ExecuteSqlCommandAsync("EXEC Proc_InsertDataPost  @userId , @text, @timeCreate",
-                                        new SqlParameter { ParameterName = "userId", Value = userId },
-                                        new SqlParameter { ParameterName = "text", Value = text },
-                                        new SqlParameter { ParameterName = "timeCreate", Value = DateTime.Now });
-                                }
-                                catch (Exception ex)
-                                {
-
-                                }
-                            }
-                            if (!string.IsNullOrEmpty(admin))
-                            {
-                                return RedirectToAction<AdminController>(nameof(Index));
-                            }
-                            return RedirectToAction<HomeController>(nameof(Index));
-                        };
-                    default:
-                        if (!string.IsNullOrEmpty(admin))
-                        {
-                            return RedirectToAction<AdminController>(nameof(Index));
-                        }
-                        return RedirectToAction<HomeController>(nameof(Index));
                 }
+                return dataTable;
+            }
+            catch (Exception)
+            {
+                return new DataTable();
+            }
+
+        }
+
+
+        [HttpPost]
+        public async Task<ActionResult> Import(string userId, string admin)
+        {
+            try
+            {
+                var dataTable = GetDataFromFile(userId);
+
+                using (ManagementDataContext dbcontext = new ManagementDataContext())
+                {
+
+
+                    SqlConnection sqlCon = new SqlConnection(dbcontext.Database.Connection.ConnectionString);
+                    sqlCon.Open();
+                    using (SqlBulkCopy s = new SqlBulkCopy(sqlCon))
+                    {
+                        //set the table name
+                        s.DestinationTableName = "DataInserts";
+
+                        foreach (var column in dataTable.Columns)
+
+                            s.ColumnMappings.Add(column.ToString(), column.ToString());
+
+                        s.WriteToServer(dataTable);
+                    }
+
+                    sqlCon.Close();
+                    if (!string.IsNullOrEmpty(admin))
+                    {
+                        return RedirectToAction<AdminController>(nameof(Index));
+                    }
+                    return RedirectToAction<HomeController>(nameof(Index));
+                }
+
+
+
+
+
+                //HttpPostedFileBase file = Request.Files[0];
+
+                //var path = Path.GetExtension(file.FileName);
+
+
+                //switch (path)
+                //{
+                //    case ".txt":
+                //        using (var stream = new StreamReader(file.InputStream, Encoding.UTF8))
+                //        {
+
+                //            while (stream.Peek() >= 0)
+                //            {
+                //                var line = stream.ReadLine();
+                //                if (!string.IsNullOrEmpty(line))
+                //                {
+                //                    await db.Database.ExecuteSqlCommandAsync("EXEC Proc_InsertDataPost  @userId , @text, @timeCreate",
+                //                       new SqlParameter { ParameterName = "userId", Value = userId },
+                //                       new SqlParameter { ParameterName = "text", Value = line },
+                //                       new SqlParameter { ParameterName = "timeCreate", Value = DateTime.Now });
+                //                }
+                //            }
+
+                //            if (!string.IsNullOrEmpty(admin))
+                //            {
+                //                return RedirectToAction<AdminController>(nameof(Index));
+                //            }
+                //            return RedirectToAction<HomeController>(nameof(Index));
+                //        }
+                //    case ".xls":
+                //    case ".xlsx":
+                //        // Excel
+                //        ExcelPackage.LicenseContext = LicenseContext.Commercial;
+                //        using (ExcelPackage excelPackage = new ExcelPackage(file.InputStream))
+                //        {
+                //            ExcelWorksheet worksheet = excelPackage.Workbook.Worksheets.FirstOrDefault();
+                //            int rows = worksheet.Dimension.Rows; // 20
+                //            int columns = worksheet.Dimension.Columns; // 7
+                //                                                       // loop through the worksheet rows and columns
+                //            for (int i = 1; i <= rows; i++)
+                //            {
+                //                try
+                //                {
+                //                    var text = worksheet.Cells[i, 1].Value.ToString();
+                //                    await db.Database.ExecuteSqlCommandAsync("EXEC Proc_InsertDataPost  @userId , @text, @timeCreate",
+                //                        new SqlParameter { ParameterName = "userId", Value = userId },
+                //                        new SqlParameter { ParameterName = "text", Value = text },
+                //                        new SqlParameter { ParameterName = "timeCreate", Value = DateTime.Now });
+                //                }
+                //                catch (Exception ex)
+                //                {
+
+                //                }
+                //            }
+                //            if (!string.IsNullOrEmpty(admin))
+                //            {
+                //                return RedirectToAction<AdminController>(nameof(Index));
+                //            }
+                //            return RedirectToAction<HomeController>(nameof(Index));
+                //        };
+                //    default:
+                //        if (!string.IsNullOrEmpty(admin))
+                //        {
+                //            return RedirectToAction<AdminController>(nameof(Index));
+                //        }
+                //        return RedirectToAction<HomeController>(nameof(Index));
+                //}
             }
             catch (Exception ex)
             {

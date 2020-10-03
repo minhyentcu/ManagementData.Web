@@ -125,6 +125,7 @@
         <div class="box box-data-user" style="display:none">
             <div class="box-header">
                 <h3 class="box-title box-title-data"></h3>
+                <h3 class="box-title box-total-record"></h3>
                 <div style="float: right">
                     <button type="button" class="btn btn-success btn-add-data " data-id="" data-toggle="modal" data-target="#modal-insert">
                         Create New
@@ -281,8 +282,13 @@
             width: 20px;
             height: 20px;
         }
+
         .text-break {
             word-break: break-all;
+        }
+
+        .box-total-record {
+            font-weight: bold;
         }
     </style>
 }
@@ -341,6 +347,7 @@
                             var urlExport = "/Data/Export/?userId=" + idUser + "&page=" + json.page + "&size=" + json.size + "&orderSort=" + json.orderSort + "&windowId=" + windowId;
                             $('.btn-export').attr('href', urlExport);
                             stringData = "Total records: " + json.countData;
+                            $('.box-total-record').html("(Total records:" + json.countData + ")")
                             return json.dataObject;
                         }
                     },
@@ -358,16 +365,16 @@
                             "data": "Id",
                             "render": function (data, row, type) {
                                 return `
-                                        <div class="text-center">
-                                        <a  class="btn btn-info text-white btn-edit" data-id="${data}"data-toggle="modal" data-target="#modal-edit"  style="cursor:pointer">
-                                        Edit  &nbsp;
-                                        </a>
-                                        <a  class="btn btn-danger text-white btn-delete" data-id="${data}" style="cursor:pointer">
-                                        Delete <i class="fas fa-trash-alt"></i> &nbsp;
-                                        </a>
-                                        <input type="checkbox" class="cb-delete" name="item-data" data-id="${data}" value="${data}" name="cb-delete">
-                                        </div>
-                                        `
+                                                <div class="text-center">
+                                                <a  class="btn btn-info text-white btn-edit" data-id="${data}"data-toggle="modal" data-target="#modal-edit"  style="cursor:pointer">
+                                                Edit  &nbsp;
+                                                </a>
+                                                <a  class="btn btn-danger text-white btn-delete" data-id="${data}" style="cursor:pointer">
+                                                Delete <i class="fas fa-trash-alt"></i> &nbsp;
+                                                </a>
+                                                <input type="checkbox" class="cb-delete" name="item-data" data-id="${data}" value="${data}" name="cb-delete">
+                                                </div>
+                                                `
                             },
                             "width": "15%"
                         }
@@ -524,7 +531,7 @@
                 //e.preventDefault();
                 checkCookie();
             });
-          
+
         });
         function checkCookie() {
             var cookieVal = $.cookie($("input[name='windowid']").val());

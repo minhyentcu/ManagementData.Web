@@ -25,7 +25,7 @@
             <div class="col-xs-12">
                 <div class="box">
                     <div class="box-header">
-                        <h3 class="box-title">Data</h3>
+                        <h3 class="box-title box-title-data">Data</h3>
                         <button type="button" class="btn btn-success" style="float:right" data-toggle="modal" data-target="#modal-default">
                             Create New
                         </button>
@@ -170,6 +170,9 @@
         .text-break{
             word-break:break-all;
         }
+        .box-title-data{
+            font-weight:bold;
+        }
     </style>
 }
 
@@ -220,6 +223,7 @@
                         var urlExport = "/Data/Export/?userId=" + idUser + "&page=" + json.page + "&size=" + json.size + "&orderSort=" + json.orderSort + "&windowId=" + windowId;
                         $('#example2_info').html("Total records: " + json.countData);
                         stringData = $('#example2_info').html();
+                        $('.box-title-data').html(stringData);
                         $('.btn-export').attr('href', urlExport);
                         return json.dataObject;
                     }
