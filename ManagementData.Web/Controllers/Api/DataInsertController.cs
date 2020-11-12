@@ -88,13 +88,13 @@ namespace ManagementData.Web.Controllers.Api
                 {
                     return Ok(new { });
                 }
+
                 var data = await db.Database
-                          .SqlQuery<DataInserDto>("Proc_GetLastData  @userId", new SqlParameter { ParameterName = "userId", Value = user.Id }).FirstOrDefaultAsync();
+                 .SqlQuery<DataInserDto>("Proc_GetLastData  @userId", new SqlParameter { ParameterName = "userId", Value = user.Id }).FirstOrDefaultAsync();
                 if (data != null)
                 {
                     await db.Database.ExecuteSqlCommandAsync("EXEC Proc_DeleteData  @id ", new SqlParameter { ParameterName = "id", Value = data.Id });
                 }
-
                 return Ok(new HttpResultModel { Text = data.Text, TimeCreate = data.TimeCreate });
             }
             catch (Exception ex)
@@ -106,50 +106,50 @@ namespace ManagementData.Web.Controllers.Api
 
         // POST: api/DataInsert
         [ResponseType(typeof(DataInsert))]
-        [HttpPost]
-        [Route("")]
-        public async Task<IHttpActionResult> PostDataInsert([FromBody] DataInserDto dataInsert)
+[HttpPost]
+[Route("")]
+public async Task<IHttpActionResult> PostDataInsert([FromBody] DataInserDto dataInsert)
+{
+    try
+    {
+        var authorization = Request.Headers.Authorization;
+        if (authorization == null || authorization.Scheme != "Bearer" || string.IsNullOrEmpty(authorization.Parameter))
         {
-            try
-            {
-                var authorization = Request.Headers.Authorization;
-                if (authorization == null || authorization.Scheme != "Bearer" || string.IsNullOrEmpty(authorization.Parameter))
-                {
-                    return Ok(new { });
-                }
-
-                var user = await db.Users.FirstOrDefaultAsync(x => x.ApiToken == Request.Headers.Authorization.Parameter);
-                if (user == null)
-                {
-                    return Ok(new { });
-                }
-                if (dataInsert.TimeCreate == null)
-                {
-                    dataInsert.TimeCreate = DateTime.Now;
-                }
-                var result = await db.Database
-                    .ExecuteSqlCommandAsync("EXEC Proc_InsertDataPost  @userId , @text, @timeCreate",
-                    new SqlParameter { ParameterName = "userId", Value = user.Id },
-                    new SqlParameter { ParameterName = "text", Value = dataInsert.Text },
-                    new SqlParameter { ParameterName = "timeCreate", Value = dataInsert.TimeCreate });
-
-                return Ok(new { Text = "Created" });
-            }
-            catch (Exception ex)
-            {
-                return Ok(new { });
-            }
-
+            return Ok(new { });
         }
 
-        protected override void Dispose(bool disposing)
+        var user = await db.Users.FirstOrDefaultAsync(x => x.ApiToken == Request.Headers.Authorization.Parameter);
+        if (user == null)
         {
-            if (disposing)
-            {
-                db.Dispose();
-            }
-            base.Dispose(disposing);
+            return Ok(new { });
         }
+        if (dataInsert.TimeCreate == null)
+        {
+            dataInsert.TimeCreate = DateTime.Now;
+        }
+        var result = await db.Database
+            .ExecuteSqlCommandAsync("EXEC Proc_InsertDataPost  @userId , @text, @timeCreate",
+            new SqlParameter { ParameterName = "userId", Value = user.Id },
+            new SqlParameter { ParameterName = "text", Value = dataInsert.Text },
+            new SqlParameter { ParameterName = "timeCreate", Value = dataInsert.TimeCreate });
+
+        return Ok(new { Text = "Created" });
+    }
+    catch (Exception ex)
+    {
+        return Ok(new { });
+    }
+
+}
+
+protected override void Dispose(bool disposing)
+{
+    if (disposing)
+    {
+        db.Dispose();
+    }
+    base.Dispose(disposing);
+}
 
 
     }
